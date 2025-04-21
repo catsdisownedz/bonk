@@ -1,4 +1,3 @@
-#include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <cmath>
 
@@ -44,7 +43,6 @@ int main(int argc, char** argv) {
     glutInitWindowPosition(100, 100);
     glutCreateWindow("GLUT Heart 💖");
 
-    glewInit();
     init();
 
     glutDisplayFunc(display);
