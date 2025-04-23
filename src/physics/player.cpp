@@ -1,6 +1,6 @@
 #include "include/physics/player.h"
 
-Player::Player() : GameObject() {
+Player::Player() : GameObject(0,0) {
     score = 0;
     id = 0;
     jumping = false;

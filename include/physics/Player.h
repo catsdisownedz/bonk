@@ -1,6 +1,6 @@
 #pragma once
 #include <utility>
-#include <GameObject.h>
+#include "include/physics/GameObject.h"
 using namespace std;
 
 class Player : public GameObject {
@@ -19,4 +19,5 @@ class Player : public GameObject {
         bool jumping;
         bool isAlive;
         bool isMoving;
+
 };

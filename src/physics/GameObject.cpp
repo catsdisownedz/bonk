@@ -4,8 +4,8 @@
 #include "physics/GameObject.h"
 
 
-GameObject::GameObject() {
-    position = {0.0, 0.0};
+GameObject::GameObject(double x, double y) {
+    position = {x, y};
     velocity = {0.0, 0.0};
     momentum = {0.0, 0.0};
     acceleration = {0.0, 0.0};
@@ -27,4 +27,4 @@ void GameObject::update(pair<double, double> position, pair<double, double> velo
     this->momentum = momentum;
     this->acceleration = acceleration;
 }
-
+ 
