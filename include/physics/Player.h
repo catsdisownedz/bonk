@@ -10,10 +10,13 @@ class Player : public GameObject {
         int getId(){return id;};
         int returnScore(){return score;};
         void update(pair<double, double> position, pair<double, double> velocity, pair<double, double> momentum, pair<double, double> acceleration);
+        bool isJumping();
+        bool Jump();
+        bool isMoving();
     private:
         int score;
         int id;
-        bool isJumnping;
+        bool jumping;
         bool isAlive;
         bool isMoving;
 };
