@@ -18,7 +18,6 @@ void OneVsOne::draw() {
         glClear(GL_COLOR_BUFFER_BIT);
         draw();
         glFlush();
-
     }
 
 

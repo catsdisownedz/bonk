@@ -5,7 +5,7 @@ using namespace std;
 
 class GameObject{
     public:
-        GameObject();
+        GameObject(double x, double y);
         pair<double, double> getPosition();
         void setPosition(pair<double, double> newPosition);
         pair<double, double> getVelocity();
