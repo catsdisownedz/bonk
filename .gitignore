@@ -9,3 +9,8 @@
 # Ignore system files
 .DS_Store
 Thumbs.db
+
+# Ignore glad and KHR files and directories
+/src/glad.c
+/include/glad/
+/include/KHR/
