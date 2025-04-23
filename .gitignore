@@ -8,9 +8,12 @@
 
 # Ignore system files
 .DS_Store
+.clangd
 Thumbs.db
 
 # Ignore glad and KHR files and directories
 /src/glad.c
 /include/glad/
 /include/KHR/
+
+compile_flags.txt
