@@ -1,0 +1,1 @@
+//communiates with network manager to initiate connections 
