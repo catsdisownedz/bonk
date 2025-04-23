@@ -13,6 +13,8 @@ class Player : public GameObject {
         bool isJumping();
         bool Jump();
         bool isMoving();
+        void draw();
+        void jump();
     private:
         int score;
         int id;
@@ -20,3 +22,4 @@ class Player : public GameObject {
         bool isAlive;
         bool isMoving;
 };
+
