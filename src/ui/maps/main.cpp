@@ -9,7 +9,7 @@ Renderer renderer;
 void displaykoko(){
    
     renderer.display();
-    map.draw();
+    // map.draw();
     // ball.display();
 }
 
@@ -30,6 +30,7 @@ int main(int argc, char** argv) {
     glLoadIdentity();
     gluOrtho2D(-1, 1, -1, 1);
     // renderer.addPlatform(map);
+    renderer.setMap(map);
     renderer.addPlayer(ball);
     // renderer.display();
     glutDisplayFunc(displaykoko); 

@@ -2,6 +2,7 @@
 
 #include <GL/glut.h>
 #include "../../include/core/Renderer.h"
+#include "../../include/ui/OneVsOne.h"
 
 
 Renderer::Renderer(){
@@ -27,6 +28,10 @@ void Renderer::removePlayer(int id) {
     }
 }
 
+void Renderer::setMap(OneVsOne& newMap) {
+    map = newMap;
+}
+
 void Renderer::display() {
     glClear(GL_COLOR_BUFFER_BIT);
     glLoadIdentity();
@@ -35,7 +40,10 @@ void Renderer::display() {
     // for ( auto& platform : platforms) {
     //     platform.drawPlatform();
     // }
-    
+
+    // Draw map
+    map.draw();
+
     // Draw players
     for (auto& player : players) {
         player.display();
