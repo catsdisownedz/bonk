@@ -12,6 +12,7 @@ class Player : public GameObject {
         void move(unsigned char key,int x, int y);
         void update(pair<double, double> position, pair<double, double> velocity, pair<double, double> momentum, pair<double, double> acceleration);
         bool isJumping();
+        void setJumping(bool isJumping);
         bool Jump();
         bool getIsMoving();
         void draw();

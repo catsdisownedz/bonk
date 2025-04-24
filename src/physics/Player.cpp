@@ -14,6 +14,10 @@ void Player::update(pair<double, double> position, pair<double, double> velocity
     
 }
 
+void Player::setJumping(bool isJumping) {
+    jumping = isJumping;
+}
+
 bool Player::isJumping(){
     return jumping;
 }
@@ -24,22 +28,32 @@ bool Player::getIsMoving() {
 double XPos=0.0, YPos=0.0;
 
 void Player::move(unsigned char key,int x, int y) {
-    switch (key) {
-        case 'a':
-            XPos-=0.05;
-            isMoving = true;
-            break;
-        case 'd':
-            XPos+=0.05;            
-            isMoving = true;
-            break;
-        // case GLUT_KEY_UP:
-        //     jump();
-        //     break;
-        // default:
-        //     isMoving = false;
-        //     break;
+    pair<double, double> currentVelocity = getVelocity();
+
+    switch (key)
+    {
+    case 'a':
+        // XPos-=0.05;
+        currentVelocity.first = -0.05;
+        isMoving = true;
+        break;
+    case 'd':
+        // XPos+=0.05;
+        currentVelocity.first = 0.05;
+        isMoving = true;
+        break;
+    case 'w':
+        jump();
+        break;
+
+    // case GLUT_KEY_UP:
+    //     jump();
+    //     break;
+    default:
+        isMoving = false;
+        break;
     }
+    setVelocity(currentVelocity);
     glutPostRedisplay();
 }
 

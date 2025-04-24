@@ -13,12 +13,16 @@ void PhysicsEngine::updatePhysics(GameObject& object, double deltaTime){
     pair<double, double> currentAcceleration = object.getAcceleration();
     pair<double, double> currentPosition = object.getPosition();
     pair<double, double> currentMomentum = object.getMomentum();
+
     currentVelocity.first += currentAcceleration.first * deltaTime;
     currentVelocity.second += currentAcceleration.second * deltaTime;
+
     currentPosition.first += currentVelocity.first * deltaTime;
     currentPosition.second += currentVelocity.second * deltaTime;
+
     currentMomentum.first = object.getMass() * currentVelocity.first;
     currentMomentum.second = object.getMass() * currentVelocity.second;
+
     // need to handle X and y acceleration
     if (Player* player = dynamic_cast<Player*> (&object)){
         if(player->isJumping()){
@@ -61,4 +65,11 @@ void PhysicsEngine::resolveCollision(GameObject& object1, GameObject& object2){
     else{
         resolveWallCollision(*player2, object1);
     }
+}
+
+void PhysicsEngine::applyFriction(GameObject& object, double friction) {
+    pair<double, double> velocity = object.getVelocity();
+
+    velocity.first *= (1 - friction);
+    object.setVelocity(velocity);
 }
