@@ -3,7 +3,9 @@
 #include "../../../include/physics/Player.h"
 #include "../../../include/core/Renderer.h"
 #include "../../../include/core/InputManager.h"
+#include "../../../include/physics/PhysicsEngine.h"
 
+PhysicsEngine physics;
 InputManager inputManager;
 OneVsOne map;  
 Player ball;
@@ -26,7 +28,7 @@ void keyUp(unsigned char key, int x, int y) {
 
 void update(int value) {
     ball.handleInput(inputManager); // Use keyboard input
-    //ball.tick();                    // Apply physics
+    ball.tick();                    // Apply physics
     glutPostRedisplay();           // Refresh screen
     glutTimerFunc(16, update, 0);  // 60 FPS
 }
