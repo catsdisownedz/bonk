@@ -2,6 +2,9 @@
 #include "../../../include/ui/OneVsOne.h"
 #include "../../../include/physics/Player.h"
 #include "../../../include/core/Renderer.h"
+#include "../../../include/core/InputManager.h"
+
+InputManager inputManager;
 OneVsOne map;  
 Player ball;
 Renderer renderer;
@@ -13,8 +16,19 @@ void displaykoko(){
     // ball.display();
 }
 
-void keyboard(unsigned char key, int x, int y){
-    ball.move(key,x,y);
+void keyDown(unsigned char key, int x, int y) {
+    inputManager.keyDown(key);
+}
+
+void keyUp(unsigned char key, int x, int y) {
+    inputManager.keyUp(key);
+}
+
+void update(int value) {
+    ball.handleInput(inputManager); // Use keyboard input
+    //ball.tick();                    // Apply physics
+    glutPostRedisplay();           // Refresh screen
+    glutTimerFunc(16, update, 0);  // 60 FPS
 }
 
 
@@ -34,7 +48,9 @@ int main(int argc, char** argv) {
     renderer.addPlayer(ball);
     // renderer.display();
     glutDisplayFunc(displaykoko); 
-    glutKeyboardFunc(keyboard);
+    glutKeyboardFunc(keyDown);
+    glutKeyboardUpFunc(keyUp);
+    glutTimerFunc(0, update, 0);
 
  
     glutMainLoop();
