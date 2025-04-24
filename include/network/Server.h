@@ -2,6 +2,7 @@
 
 #include <enet/enet.h>
 #include <vector>
+#include <thread>
 
 using namespace std;
 
@@ -18,4 +19,10 @@ private:
     ENetAddress address;
     ENetHost *server;
     vector<ENetPeer *> clients;
+
+    // Health check thread for Cloud Run
+    thread healthCheckThread;
+    bool running;
+    void startHealthCheck();
+    void runHealthCheck();
 };
