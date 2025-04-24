@@ -2,6 +2,7 @@
 #include "../../include/physics/GameObject.h"
 #include "../../include/physics/Player.h"
 #include <utility>
+#include <math.h>
 
 //need to handle collision at some point
 //x and y accelerations are not 100% done
@@ -71,11 +72,51 @@ void PhysicsEngine::resolveCollision(GameObject& object1, GameObject& object2){
 
 
 void PhysicsEngine::resolvePlayerCollision(Player& p1, Player& p2) {
-    // TODO: implement proper response
+    // Step 1: Find the normal vector
+    pair<double, double> delta = {
+        p2.getPosition().first - p1.getPosition().first,
+        p2.getPosition().second - p1.getPosition().second
+    };
+
+    double distance = sqrt(delta.first * delta.first + delta.second * delta.second);
+    if (distance == 0.0) return; // avoid division by zero
+
+    double x_Normal = delta.first / distance;
+    double y_Normal = delta.second / distance;
+
+    // Step 2: Get velocities
+    auto v1 = p1.getVelocity();
+    auto v2 = p2.getVelocity();
+
+    // Step 3: Project velocities onto the collision normal
+    double v1n = v1.first * x_Normal + v1.second * y_Normal;
+    double v2n = v2.first * x_Normal + v2.second * y_Normal;
+
+    // Step 4: Compute new normal velocities using elastic collision
+    double m1 = p1.getMass();
+    double m2 = p2.getMass();
+
+    double v1nAfter = (v1n * (m1 - m2) + 2 * m2 * v2n) / (m1 + m2);
+    double v2nAfter = (v2n * (m2 - m1) + 2 * m1 * v1n) / (m1 + m2);
+
+    // Step 5: Compute change in velocity in normal direction
+    double dv1n = v1nAfter - v1n;
+    double dv2n = v2nAfter - v2n;
+
+    // Step 6: Apply changes to original velocities
+    p1.setVelocity({
+        v1.first + dv1n * x_Normal,
+        v1.second + dv1n * y_Normal
+    });
+
+    p2.setVelocity({
+        v2.first + dv2n * x_Normal,
+        v2.second + dv2n * y_Normal
+    });
 }
 
 void PhysicsEngine::resolveWallCollision(Player& player, GameObject& wall) {
-    // TODO: handle bounce or stop
+    //TODO: implement proper collision
 }
 
 void PhysicsEngine::applyFriction(GameObject& object, double friction) {
