@@ -1,6 +1,6 @@
 #include <GL/glut.h>
 #include "OneVsOne.h"
-#include "physics/Player.h"
+#include "../../../include/physics/Player.h"
 
 OneVsOne map;  // Declare the map here
 Player ball;
