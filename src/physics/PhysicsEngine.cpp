@@ -78,15 +78,6 @@ void PhysicsEngine::resolveWallCollision(Player& player, GameObject& wall) {
     // TODO: handle bounce or stop
 }
 
-
-void PhysicsEngine::resolvePlayerCollision(Player& p1, Player& p2) {
-    // TODO: implement proper response
-}
-
-void PhysicsEngine::resolveWallCollision(Player& player, GameObject& wall) {
-    // TODO: handle bounce or stop
-}
-
 void PhysicsEngine::applyFriction(GameObject& object, double friction) {
     pair<double, double> velocity = object.getVelocity();
 
