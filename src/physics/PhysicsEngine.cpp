@@ -14,6 +14,7 @@ void PhysicsEngine::updatePhysics(GameObject& object, double deltaTime){
     pair<double, double> currentPosition = object.getPosition();
     pair<double, double> currentMomentum = object.getMomentum();
 
+
     currentVelocity.first += currentAcceleration.first * deltaTime;
     currentVelocity.second += currentAcceleration.second * deltaTime;
 
@@ -29,6 +30,7 @@ void PhysicsEngine::updatePhysics(GameObject& object, double deltaTime){
             currentAcceleration.second -= gravity;
         }
     }
+    //psuh back into el game object 
     object.update(currentPosition, currentVelocity, currentMomentum, currentAcceleration);
 }
 // f = m * a -> a = f / m
@@ -65,6 +67,24 @@ void PhysicsEngine::resolveCollision(GameObject& object1, GameObject& object2){
     else{
         resolveWallCollision(*player2, object1);
     }
+}
+
+
+void PhysicsEngine::resolvePlayerCollision(Player& p1, Player& p2) {
+    // TODO: implement proper response
+}
+
+void PhysicsEngine::resolveWallCollision(Player& player, GameObject& wall) {
+    // TODO: handle bounce or stop
+}
+
+
+void PhysicsEngine::resolvePlayerCollision(Player& p1, Player& p2) {
+    // TODO: implement proper response
+}
+
+void PhysicsEngine::resolveWallCollision(Player& player, GameObject& wall) {
+    // TODO: handle bounce or stop
 }
 
 void PhysicsEngine::applyFriction(GameObject& object, double friction) {
