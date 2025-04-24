@@ -28,3 +28,8 @@ void GameObject::update(pair<double, double> position, pair<double, double> velo
     this->momentum = momentum;
     this->acceleration = acceleration;
 }
+void GameObject::addAcceleration(double xAcceleration, double yAcceleration){
+    acceleration.first += xAcceleration;
+    acceleration.second += yAcceleration;
+}
+

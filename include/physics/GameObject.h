@@ -6,6 +6,7 @@ using namespace std;
 class GameObject{
 public:
     GameObject(double x, double y);
+    virtual ~GameObject() {};
     void drawPlatform();
     void drawPlayers();
     pair<double, double> getPosition();
@@ -19,6 +20,7 @@ public:
     pair<double, double> getAcceleration();
     void setAcceleration(pair<double, double> newAcceleration);
     void update(pair<double, double> position, pair<double, double> velocity, pair<double, double> momentum, pair<double, double> acceleration);
+    void addAcceleration(double xAcceleration, double yAcceleration);
 
 private:
     pair<double, double> position;
