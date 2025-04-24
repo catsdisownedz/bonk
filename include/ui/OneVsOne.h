@@ -1,8 +1,7 @@
 #pragma once
 
 #include "Map.h"
-#include "../../../include/physics/Player.h"
-#include "../../../include/physics/Player.h"
+#include "../physics/Player.h"
 #include <vector>
 
 class OneVsOne : public Map

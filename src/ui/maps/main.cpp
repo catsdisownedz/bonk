@@ -1,5 +1,5 @@
 #include <GL/glut.h>
-#include "OneVsOne.h"
+#include "../../../include/ui/OneVsOne.h"
 #include "../../../include/physics/Player.h"
 
 OneVsOne map;  // Declare the map here
@@ -30,9 +30,9 @@ int main(int argc, char** argv) {
     gluOrtho2D(-1, 1, -1, 1);
 
     glutDisplayFunc(displaykoko); 
-     glutKeyboardFunc(keyboard);
+    glutKeyboardFunc(keyboard);
 
-    // Start the GLUT main loop
+ 
     glutMainLoop();
 
     return 0;

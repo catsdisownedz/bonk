@@ -1,5 +1,5 @@
 #include <GL/glut.h>
-#include "OneVsOne.h"
+#include "../../../include/ui/OneVsOne.h"
 
 OneVsOne::OneVsOne()
     : platform(0.0, 0.0)
