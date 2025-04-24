@@ -1,10 +1,15 @@
 #include <GL/glut.h>
 #include "OneVsOne.h"
+#include "physics/Player.h"
 
 OneVsOne map;  // Declare the map here
+Player ball;
 
 void displaykoko(){
-    map.display();
+    glClear(GL_COLOR_BUFFER_BIT);
+    map.draw();
+    ball.draw();
+    glFlush();
 }
 
 // OneVsOne map;

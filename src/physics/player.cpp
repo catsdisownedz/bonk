@@ -1,4 +1,4 @@
-#include "include/physics/player.h"
+#include "physics/Player.h"
 #include <GL/glut.h>
 #include <cmath>
 
@@ -13,14 +13,13 @@ void Player::update(pair<double, double> position, pair<double, double> velocity
     GameObject::update(position, velocity, momentum, acceleration);
     
 }
-int Player::returnScore() {
-    return score;
-}
-void Player::updateScore() {
-    score++;
-}
+
 bool Player::isJumping(){
     return jumping;
+}
+
+bool Player::getIsMoving() {
+    return isMoving;
 }
 
 void Player::draw(){

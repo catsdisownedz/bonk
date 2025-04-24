@@ -1,6 +1,6 @@
 #pragma once
 #include <utility>
-#include "include/physics/GameObject.h"
+#include "physics/GameObject.h"
 using namespace std;
 
 class Player : public GameObject {
@@ -12,7 +12,7 @@ class Player : public GameObject {
         void update(pair<double, double> position, pair<double, double> velocity, pair<double, double> momentum, pair<double, double> acceleration);
         bool isJumping();
         bool Jump();
-        bool isMoving();
+        bool getIsMoving();
         void draw();
         void jump();
     private:
