@@ -1,5 +1,6 @@
 //communiates with network manager to initiate connections 
 //#include <GLUT/glut.h>
+//run:g++ -o menu MenuManager.cpp -framework OpenGL -framework GLUT
 #include <GL/glut.h>
 #include <iostream>
 #include <string>
@@ -30,9 +31,9 @@ void renderBitmapString(float x, float y, void* font, const char* string) {
 }
 
 void drawButton(const Button& btn) {
-    // Border (if highlighted)
+    
     if (btn.highlighted) {
-        glColor3f(1.0f, 0.8f, 0.85f); // Light pink border
+        glColor3f(1.0f, 0.8f, 0.85f); 
         glBegin(GL_QUADS);
         glVertex2f(btn.x - 5, btn.y - 5);
         glVertex2f(btn.x + btn.width + 5, btn.y - 5);
@@ -41,7 +42,6 @@ void drawButton(const Button& btn) {
         glEnd();
     }
 
-    // Button fill (brown)
     glColor3f(0.4f, 0.25f, 0.15f);
     glBegin(GL_QUADS);
     glVertex2f(btn.x, btn.y);
@@ -50,7 +50,7 @@ void drawButton(const Button& btn) {
     glVertex2f(btn.x, btn.y + btn.height);
     glEnd();
 
-    // Text (white, centered)
+    
     glColor3f(1.0f, 1.0f, 1.0f);
     float text_x = btn.x + (btn.width / 2) - (btn.label.length() * 4.5f);
     float text_y = btn.y + (btn.height / 2) - 5;
@@ -60,11 +60,11 @@ void drawButton(const Button& btn) {
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // Title
-    glColor3f(1, 1, 1);
-    renderBitmapString(WINDOW_WIDTH / 2 - 70, 500, GLUT_BITMAP_TIMES_ROMAN_24, "Bonk.io Menu");
 
-    // Draw buttons
+    glColor3f(1, 1, 1);
+    renderBitmapString(WINDOW_WIDTH / 2 - 70, 500, GLUT_BITMAP_TIMES_ROMAN_24, "Main Menu");
+
+   
     for (const Button& btn : buttons) {
         drawButton(btn);
     }
@@ -102,7 +102,7 @@ void initButtons() {
 }
 
 void init() {
-    glClearColor(0.3f, 0.25f, 0.32f, 1.0f); // Bonk dark purple-gray
+    glClearColor(0.3f, 0.25f, 0.32f, 1.0f); 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT);
@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-    glutCreateWindow("Bonk.io Style Menu");
+    glutCreateWindow("Main Menu");
 
     init();
 
