@@ -63,6 +63,7 @@ void Player::jump() {
 }
 
 void Player::display(){
+    
     glPushMatrix();
     glTranslatef(XPos, YPos, 0.0);
     draw();

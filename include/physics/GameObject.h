@@ -3,11 +3,11 @@
 
 using namespace std;
 
-class GameObject
-{
+class GameObject{
 public:
     GameObject(double x, double y);
-
+    void drawPlatform();
+    void drawPlayers();
     pair<double, double> getPosition();
     void setPosition(pair<double, double> newPosition);
     pair<double, double> getVelocity();

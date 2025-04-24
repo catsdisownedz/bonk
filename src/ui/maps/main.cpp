@@ -1,15 +1,16 @@
 #include <GL/glut.h>
 #include "../../../include/ui/OneVsOne.h"
 #include "../../../include/physics/Player.h"
-
-OneVsOne map;  // Declare the map here
+#include "../../../include/core/Renderer.h"
+OneVsOne map;  
 Player ball;
+Renderer renderer;
 
 void displaykoko(){
-    glClear(GL_COLOR_BUFFER_BIT);
+   
+    renderer.display();
     map.draw();
-    ball.display();
-    // glFlush();
+    // ball.display();
 }
 
 void keyboard(unsigned char key, int x, int y){
@@ -24,11 +25,13 @@ int main(int argc, char** argv) {
     glutCreateWindow("ponk");
 
     // Set up OpenGL environment
-    glClearColor(0.1, 0.8, 0.6, 0.6);
+    glClearColor(0.1, 0.8, 0.6, 0.6);// alwan el background
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(-1, 1, -1, 1);
-
+    // renderer.addPlatform(map);
+    renderer.addPlayer(ball);
+    // renderer.display();
     glutDisplayFunc(displaykoko); 
     glutKeyboardFunc(keyboard);
 
