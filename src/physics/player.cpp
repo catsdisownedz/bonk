@@ -1,4 +1,4 @@
-#include "physics/Player.h"
+#include "../../include/physics/Player.h"
 #include <GL/glut.h>
 #include <cmath>
 

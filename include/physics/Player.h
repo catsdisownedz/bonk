@@ -1,6 +1,6 @@
 #pragma once
 #include <utility>
-#include "physics/GameObject.h"
+#include "GameObject.h"
 using namespace std;
 
 class Player : public GameObject {
