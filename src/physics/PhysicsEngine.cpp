@@ -15,7 +15,6 @@ void PhysicsEngine::updatePhysics(GameObject& object, double deltaTime){
     pair<double, double> currentPosition = object.getPosition();
     pair<double, double> currentMomentum = object.getMomentum();
 
-
     currentVelocity.first += currentAcceleration.first * deltaTime;
     currentVelocity.second += currentAcceleration.second * deltaTime;
 

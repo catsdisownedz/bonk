@@ -57,7 +57,7 @@ void Renderer::display() {
    
   
 
-    // glutSwapBuffers(); // to be added when zeina eats
+    glutSwapBuffers(); // to be added when zeina eats
 }
 
 

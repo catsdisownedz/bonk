@@ -63,7 +63,7 @@ if (input.isCombo('a', 'w')){
     } 
 
     // Print current velocity
-    cout << "Velocity: (" << vel.first << ", " << vel.second << ")\n";
+    //cout << "Velocity: (" << vel.first << ", " << vel.second << ")\n";
 
     setVelocity(vel);
 }
@@ -94,7 +94,7 @@ void Player::display(){
     draw();
     glPopMatrix();
     //glFlush();
-    glutSwapBuffers();
+    // glutSwapBuffers();
 }
 
 void Player::tick() {
