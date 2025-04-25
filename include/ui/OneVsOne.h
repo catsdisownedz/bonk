@@ -2,7 +2,7 @@
 
 #include "Map.h"
 #include "../physics/Player.h"
-#include "../physics/platform.h"
+#include "../physics/Platform.h"
 #include <vector>
 
 class OneVsOne : public Map

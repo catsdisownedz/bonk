@@ -27,11 +27,13 @@ void keyUp(unsigned char key, int x, int y) {
 }
 
 void update(int value) {
-    ball.handleInput(inputManager); // Use keyboard input
-    ball.tick();                    // Apply physics
-    physics.updatePhysics(ball, 0.016);
-    glutPostRedisplay();           // Refresh screen
-    glutTimerFunc(16, update, 0);  // 60 FPS
+    renderer.update();
+    glutTimerFunc(16, update, 0);
+    // ball.handleInput(inputManager); // Use keyboard input
+    // ball.tick();                    // Apply physics
+    // physics.updatePhysics(ball, 0.016);
+    // glutPostRedisplay();           // Refresh screen
+    // glutTimerFunc(16, update, 0);  // 60 FPS
 }
 
 

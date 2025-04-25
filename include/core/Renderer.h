@@ -15,6 +15,7 @@ class Renderer {
         void addMovingObject(const GameObject& movingObject);
         void removePlayer(int id);
         void setMap(OneVsOne& newMap);
+        void update();
 
     private:
         vector<Player> players;

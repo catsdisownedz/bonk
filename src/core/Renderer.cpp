@@ -3,8 +3,14 @@
 #include <GL/glut.h>
 #include "../../include/core/Renderer.h"
 #include "../../include/ui/OneVsOne.h"
+#include "../../include/physics/PhysicsEngine.h"
+#include "../../include/core/InputManager.h"
+#include <iostream>
 
+using namespace std;
 
+extern InputManager inputManager;
+PhysicsEngine physicsEngine;
 Renderer::Renderer(){
     
 
@@ -47,6 +53,7 @@ void Renderer::display() {
     // Draw players
     for (auto& player : players) {
         player.display();
+        //cout<<player.getVelocity().first;
     }
     
     
@@ -59,6 +66,25 @@ void Renderer::display() {
 
     glutSwapBuffers(); // to be added when zeina eats
 }
+void Renderer::update(){
+    for (auto& player: players){
+        player.handleInput(inputManager);
+        //player.tick();
+        physicsEngine.updatePhysics(player, 0.016);
+        cout<<player.getVelocity().first;
+    }
+    glutPostRedisplay();
+    
+}
+
+/*void update(int value) {
+    ball.handleInput(inputManager); // Use keyboard input
+    ball.tick();                    // Apply physics
+    physics.updatePhysics(ball, 0.016);
+    glutPostRedisplay();           // Refresh screen
+    glutTimerFunc(16, update, 0);  // 60 FPS
+}
+*/
 
 
 

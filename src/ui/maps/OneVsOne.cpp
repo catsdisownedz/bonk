@@ -3,7 +3,9 @@
 #include "../../../include/physics/Platform.h"
 
 
-Platform platform = Platform({-0.67, 0.07}, true, 1.34, 0.14, {0.0, 0.0, 1.0});
+Platform horizontal = Platform({-0.67, 0.07}, true, 1.34, 0.14, {0.0, 0.0, 1.0});
+// Platform vertical = Platform({-0.67, 0.07}, false, 1.34, 0.14, {0.0, 0.0, 1.0});
+
 
 OneVsOne::OneVsOne(){
     // Any other initialization goes here
@@ -11,7 +13,8 @@ OneVsOne::OneVsOne(){
 
 void OneVsOne::draw()
 {
-    platform.draw();
+    horizontal.draw();
+    // vertical.draw();
     // glColor3f(0.0, 0.0, 1.0);
 
     // glBegin(GL_QUADS);
