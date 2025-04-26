@@ -27,3 +27,7 @@ double Platform::getWidth(){
 double Platform::getLength(){
     return length;
 }
+
+bool Platform::isHorizontal() const {
+    return horizontal;
+}

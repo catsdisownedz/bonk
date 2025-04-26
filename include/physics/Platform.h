@@ -5,15 +5,17 @@
 
 using namespace std;
 
-class Platform: public GameObject{
-    public:
-        Platform(pair<double, double> position, bool horizontal,double length,double width, vector<double> colors);
-        void draw();
-        double getLength();
-        double getWidth();
-    private:
-        bool horizontal;
-        double length;
-        double width;
-        vector<double> colors;
+class Platform : public GameObject {
+public:
+    Platform(pair<double, double> position, bool horizontal, double length, double width, vector<double> colors);
+    void draw();
+    double getLength();
+    double getWidth();
+    bool isHorizontal() const; 
+
+private:
+    bool horizontal;
+    double length;
+    double width;
+    vector<double> colors;
 };
