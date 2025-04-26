@@ -1,7 +1,7 @@
 #include "../../include/physics/PhysicsEngine.h"
 #include "../../include/physics/GameObject.h"
 #include "../../include/physics/Player.h"
-#include "../../include/physics/platform.h"
+#include "../../include/physics/Platform.h"
 #include <utility>
 #include <math.h>
 #include <iostream>

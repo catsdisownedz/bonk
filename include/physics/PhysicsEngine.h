@@ -1,8 +1,8 @@
 #pragma once
 
-using namespace std;
+//using namespace std;
 
-class GameObject; // Forward declaration of GameObject class
+class GameObject; 
 class Player;
 class Platform;
 

@@ -70,6 +70,7 @@ void Renderer::display() {
 
     glutSwapBuffers(); // to be added when zeina eats
 }
+// hena fix of by reference
 void Renderer::update(){
     for (auto& player: players){
         player.handleInput(inputManager);
