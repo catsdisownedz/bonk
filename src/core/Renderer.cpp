@@ -65,26 +65,34 @@ void Renderer::display() {
     // for (const auto& movingObject : movingObjects) {
     //     movingObject.draw();
     // }
-   
-  
-
     glutSwapBuffers(); // to be added when zeina eats
 }
-void Renderer::update(){
-    for (auto& player: players){
-        player.handleInput(inputManager);
-        //player.tick();
-        /*for(auto& platform: platforms){
-            bool collided = physicsEngine.checkCollision(player, platform);
-            cout<< collided <<'\n';
-        }*/
-        physicsEngine.updatePhysics(player, 0.016);
 
-        //cout<<player.getVelocity().first;
+void Renderer::update() {
+    for (auto& player : players) {
+        player.handleInput(inputManager);         // Read player input
+        physicsEngine.updatePhysics(player, 0.016); // Apply physics (gravity, velocity)
+
+        for (auto& platform : map.getPlatforms()) {
+            if (physicsEngine.checkCollision(player, platform)) {
+                physicsEngine.resolveCollision(player, platform); // Only resolve if collision detected
+                cout << "[Renderer] Collision detected and resolved\n";
+            }
+        }
+
+        // (Optional) If you have multiple players and want to check player-player collisions later:
+        // for (auto& otherPlayer : players) {
+        //     if (&otherPlayer != &player) {
+        //         if (physicsEngine.checkCollision(player, otherPlayer)) {
+        //             physicsEngine.resolveCollision(player, otherPlayer);
+        //         }
+        //     }
+        // }
     }
-    glutPostRedisplay();
-    
+
+    glutPostRedisplay(); // Request to redraw the scene
 }
+
 
 /*void update(int value) {
     ball.handleInput(inputManager); // Use keyboard input
