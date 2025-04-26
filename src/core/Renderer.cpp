@@ -65,8 +65,12 @@ void Renderer::display() {
     // for (const auto& movingObject : movingObjects) {
     //     movingObject.draw();
     // }
+   
+  
+
     glutSwapBuffers(); // to be added when zeina eats
 }
+// hena fix of by reference
 void Renderer::update(){
     for (auto& player: players){
         player.handleInput(inputManager);

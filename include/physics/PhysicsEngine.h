@@ -17,15 +17,11 @@ class PhysicsEngine {
         void resolveCollision(GameObject& object1, GameObject& object2);
         void applyFriction(GameObject& object, double friction);
         void resolvePlayerCollision(Player& player1, Player& player2);
-        void resolveWallCollision(Player& player, Platform& platform);
+        void resolveWallCollision(Player& player, GameObject& object);
         //bool checkPlayerCollision(Player& player1, Player& player2);
         bool checkWallCollision(Player& player, Platform& platform);
-        bool checkPlayerCollision(Player& p1, Player& p2);
-    
-        
-
     private:
-        const double gravity = 0.8;
+        const double gravity = 9.8;
         const double friction = 0.1;
         const double airResistance = 0.05;
         const double timeStep = 0.016; // 60 FPS

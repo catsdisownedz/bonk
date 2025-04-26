@@ -10,12 +10,12 @@ class OneVsOne : public Map
 public:
     OneVsOne();
     void draw();
-    vector<Platform>& getPlatforms(); //NOW WE CAN RETURN IT BY REFERENCE 
+    vector<GameObject> getPlatforms();
     //virtual void display()=0;
     //virtual void addPlatform(Platform platform)=0;
     //void addPlayers(Player player)=0; 
 
 private:
-    vector<Platform> platforms;
+    vector<GameObject> platforms;
     vector<Player> players;
 };
