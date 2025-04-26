@@ -70,13 +70,16 @@ void Renderer::display() {
 
 void Renderer::update() {
     for (auto& player : players) {
+        //cout<< player.getAcceleration().second<<" "<<player.getVelocity().second<<"\n";
         player.handleInput(inputManager);         // Read player input
         physicsEngine.updatePhysics(player, 0.016); // Apply physics (gravity, velocity)
 
         for (auto& platform : map.getPlatforms()) {
             if (physicsEngine.checkCollision(player, platform)) {
+                //cout << "Collided!\n";
                 physicsEngine.resolveCollision(player, platform); // Only resolve if collision detected
-                cout << "[Renderer] Collision detected and resolved\n";
+                
+                //cout << "[Renderer] Collision detected and resolved\n";
             }
         }
 

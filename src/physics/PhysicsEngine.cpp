@@ -12,7 +12,10 @@ using namespace std;
 
 PhysicsEngine:: PhysicsEngine(){};
 void PhysicsEngine::updatePhysics(GameObject& object, double deltaTime){
-    pair<double, double> currentVelocity = object.getVelocity();
+    const double maxStep = 0.01;
+    double timeLeft = deltaTime;
+    while (timeLeft > 0){
+        pair<double, double> currentVelocity = object.getVelocity();
     pair<double, double> currentAcceleration = object.getAcceleration();
     pair<double, double> currentPosition = object.getPosition();
     pair<double, double> currentMomentum = object.getMomentum();
@@ -27,9 +30,45 @@ void PhysicsEngine::updatePhysics(GameObject& object, double deltaTime){
     currentMomentum.second = object.getMass() * currentVelocity.second;
 
     // need to handle X and y acceleration
-    currentAcceleration.second -= gravity;
+    Player* player = dynamic_cast<Player*> (&object) ;
+    if(player){
+        if (player->isJumping()){
+            currentAcceleration.second -= gravity;
+            player->setJumping(false);
+        }
+    }
+    //currentAcceleration.second -= gravity;
     //psuh back into el game object 
     object.update(currentPosition, currentVelocity, currentMomentum, currentAcceleration);
+    timeLeft -= maxStep;
+
+    }
+    /*pair<double, double> currentVelocity = object.getVelocity();
+    pair<double, double> currentAcceleration = object.getAcceleration();
+    pair<double, double> currentPosition = object.getPosition();
+    pair<double, double> currentMomentum = object.getMomentum();
+
+    currentVelocity.first += currentAcceleration.first * deltaTime;
+    currentVelocity.second += currentAcceleration.second * deltaTime;
+
+    currentPosition.first += currentVelocity.first * deltaTime;
+    currentPosition.second += currentVelocity.second * deltaTime;
+
+    currentMomentum.first = object.getMass() * currentVelocity.first;
+    currentMomentum.second = object.getMass() * currentVelocity.second;
+
+    // need to handle X and y acceleration
+    Player* player = dynamic_cast<Player*> (&object) ;
+    if(player){
+        if (player->isJumping()){
+            currentAcceleration.second -= gravity;
+            player->setJumping(false);
+        }
+    }
+    //currentAcceleration.second -= gravity;
+    //psuh back into el game object 
+    object.update(currentPosition, currentVelocity, currentMomentum, currentAcceleration);
+    */
 }
 // f = m * a -> a = f / m
 void PhysicsEngine::applyForce(GameObject& object, double forceX, double forceY){
@@ -49,9 +88,9 @@ bool PhysicsEngine::checkCollision(GameObject& object1, GameObject& object2){
     Platform* platform1 = dynamic_cast<Platform*>(&object1);
     Platform* platform2 = dynamic_cast<Platform*>(&object2);
 
-    cout<<"idk";
+    //cout<<"idk";
     if(player1 && player2){
-        cout << "[Physics] Checking player-player collision\n";
+        //cout << "[Physics] Checking player-player collision\n";
         //return(checkPlayerCollision(*player1, *player2));
         return false;
     }
@@ -59,17 +98,18 @@ bool PhysicsEngine::checkCollision(GameObject& object1, GameObject& object2){
         // cout<<"second if";
         // Platform* platform = dynamic_cast<Platform*> (&object2);
         // cout<<"casted";
-        cout << "[Physics] Checking player-platform collision\n";
+        //cout << "[Physics] Checking player-platform collision\n";
         return(checkWallCollision(*player1, *platform2));
     }
     else if (player2 && platform1) {
-        cout << "[Physics] Checking player-platform collision (swapped)\n";
-        return checkWallCollision(*player2, *platform1);
+        //cout << "[Physics] Checking player-platform collision (swapped)\n";
+        return(checkWallCollision(*player2, *platform1));
     }
 
     return false;
 }
-bool PhysicsEngine::checkWallCollision(Player& player, Platform& platform) {
+//zeina's function
+/*bool PhysicsEngine::checkWallCollision(Player& player, Platform& platform) {
     const double radius = 0.08;
     auto pos = player.getPosition();
     auto vel = player.getVelocity();
@@ -84,9 +124,10 @@ bool PhysicsEngine::checkWallCollision(Player& player, Platform& platform) {
     double playerRight = pos.first + radius;
 
     double platformTop = platPos.second;
-    double platformBottom = platformTop - platWidth;
+    double platformBottom = platLength;
     double platformLeft = platPos.first;
     double platformRight = platformLeft + platLength;
+    //cout<<platformTop <<" " << platformBottom <<" " <<platformLeft << platformRight <<"\n";
 
     if (isHorizontal) {
         // Allow a bigger vertical margin to catch falling balls
@@ -103,9 +144,50 @@ bool PhysicsEngine::checkWallCollision(Player& player, Platform& platform) {
 
         return hitLeft || hitRight;
     }
+        
+}*//*
+// omar and rola's function
+bool PhysicsEngine::checkWallCollision(Player& player, Platform& platform){
+    //cout<<"why ded";
+    pair<double, double> player_position = player.getPosition();
+    pair<double, double> platform_position = platform.getPosition();
+    //cout<<"are you ded";
+    double closestX = min(abs(player_position.first - platform_position.first), abs(player_position.first - (platform_position.first + platform.getLength())));
+    //double closestX = max(platform_position.first, min(player_position.first, platform_position.first + platform.getLength()));
+    double closestY= min(abs(player_position.second - platform_position.second) , abs(player_position.second - (platform_position.second - platform.getWidth())));
+    return ( closestX <= 0.08 || closestY <= 0.08);     
 }
+*/
+//chatgpt's func
+bool PhysicsEngine::checkWallCollision(Player& player, Platform& platform) {
+    const double radius = 0.08;
+    auto pos = player.getPosition();
+    auto platPos = platform.getPosition();
+    double platWidth = platform.getWidth();
+    double platLength = platform.getLength();
+    bool isHorizontal = platform.isHorizontal();
 
+    double platformLeft = platPos.first;
+    double platformRight = platPos.first + platLength;
+    double platformTop = platPos.second;
+    double platformBottom = platPos.second - platWidth;
 
+    // Clamp player's center to platform bounds
+    double closestX = std::max(platformLeft, std::min(pos.first, platformRight));
+    double closestY = std::max(platformBottom, std::min(pos.second, platformTop));
+    //double closestX = min(abs(platPos.first - platformLeft), abs(platPos.first - platformRight));
+    //double closestY= min(abs(platPos.second - platformTop) , abs(platPos.second - platformBottom));
+    
+
+    // Compute distance between player's center and closest point
+    double distanceX = pos.first - closestX;
+    double distanceY = pos.second - closestY;
+    double distanceSquared = distanceX * distanceX + distanceY * distanceY;
+    if(distanceSquared <= radius * radius){
+        cout<<"COLLISION"<<"\n";
+    }
+    return distanceSquared <= radius * radius;
+}
 
 
 bool PhysicsEngine::checkPlayerCollision(Player& p1, Player& p2) {
@@ -168,6 +250,7 @@ void PhysicsEngine::resolvePlayerCollision(Player& p1, Player& p2) {
 }
 
 void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
+    //cout <<"collision!";
     const double radius = 0.08;
     auto pos = player.getPosition();
     auto vel = player.getVelocity();
@@ -195,8 +278,9 @@ void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
         }
 
         player.setVelocity(vel);
+        player.setAcceleration({acc.first, 0});
 
-        cout << "[Resolve] Landed on horizontal platform\n";
+        //cout << "[Resolve] Landed on horizontal platform\n";
     } else {
         // (keep wall collision the same)
         double playerBottom = pos.second - radius;
@@ -204,14 +288,21 @@ void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
         double playerLeft = pos.first - radius;
         double playerRight = pos.first + radius;
 
-     if (playerRight >= platformLeft && playerLeft < platformLeft) {
+    //  if (playerRight >= platformLeft && playerLeft < platformLeft) {
+         if (abs(player.getPosition().first+radius) <=abs(platPos.first) ) {
+            // Ball hits left side of platform
+            player.setPosition({platformLeft - radius - 0.001, pos.second}); // 🛠 Move slightly more left
+            vel.first = -abs(vel.first) * 0.7;
+            player.setVelocity(vel);
+            cout << "[Resolve] Bounced off left wall\n";
     // Ball hits left side of platform
             player.setPosition({platformLeft - radius - 0.001, pos.second}); // 🛠 Move slightly more left
             vel.first = -abs(vel.first) * 0.7;
             player.setVelocity(vel);
             cout << "[Resolve] Bounced off left wall\n";
         }
-        else if (playerLeft <= platformRight && playerRight > platformRight) {
+        // else if (playerLeft <= platformRight && playerRight > platformRight) {
+        else if(abs(player.getPosition().first+radius)<=abs(platPos.first +platLength)){
             // Ball hits right side of platform
             player.setPosition({platformRight + radius + 0.001, pos.second}); // 🛠 Move slightly more right
             vel.first = abs(vel.first) * 0.7;

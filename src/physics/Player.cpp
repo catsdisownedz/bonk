@@ -55,11 +55,13 @@ if (input.isCombo('a', 'w')){
         cout << "[Combo] aw - Top Left\n";
         vel.first = max(vel.first - accel, -maxSpeed);
         vel.second += 0.25;
+        jumping = true;
     } 
     if (input.isCombo('d', 'w')){
         cout << "[Combo] wd - Top Right\n";
         vel.first = min(vel.first + accel, maxSpeed);
         vel.second += 0.25;
+        jumping = true;
     } 
 
     // Print current velocity
