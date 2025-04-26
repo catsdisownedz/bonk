@@ -16,14 +16,18 @@ OneVsOne::OneVsOne(){
     platforms.push_back(vertical);
 }
 
-vector<GameObject> OneVsOne::getPlatforms(){
+vector<Platform>& OneVsOne::getPlatforms(){
     return platforms;
 }
 
 void OneVsOne::draw()
 {
-    horizontal.draw();
-    vertical.draw();
+    for(auto& platform : platforms){
+        platform.draw();
+    }
+
+
+
     // glColor3f(0.0, 0.0, 1.0);
 
     // glBegin(GL_QUADS);
