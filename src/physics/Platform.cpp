@@ -20,3 +20,10 @@ void Platform::draw(){
     glEnd();
     glPopMatrix();
 }
+
+double Platform::getWidth(){
+    return width;
+}
+double Platform::getLength(){
+    return length;
+}

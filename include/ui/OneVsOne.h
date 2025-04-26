@@ -10,6 +10,7 @@ class OneVsOne : public Map
 public:
     OneVsOne();
     void draw();
+    vector<GameObject> getPlatforms();
     //virtual void display()=0;
     //virtual void addPlatform(Platform platform)=0;
     //void addPlayers(Player player)=0; 

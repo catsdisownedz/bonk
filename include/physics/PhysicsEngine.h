@@ -4,6 +4,7 @@ using namespace std;
 
 class GameObject; // Forward declaration of GameObject class
 class Player;
+class Platform;
 
 
 class PhysicsEngine {
@@ -17,6 +18,8 @@ class PhysicsEngine {
         void applyFriction(GameObject& object, double friction);
         void resolvePlayerCollision(Player& player1, Player& player2);
         void resolveWallCollision(Player& player, GameObject& object);
+        //bool checkPlayerCollision(Player& player1, Player& player2);
+        bool checkWallCollision(Player& player, Platform& platform);
     private:
         const double gravity = 9.8;
         const double friction = 0.1;

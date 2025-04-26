@@ -3,6 +3,7 @@
 #include "../physics/Player.h"
 #include "../ui/OneVsOne.h"
 #include <vector>
+#include <memory>
 
 class Renderer {
 
@@ -11,7 +12,7 @@ class Renderer {
         // void draw();
         void display();
         void addPlayer(const Player& player);
-        void addPlatform(const GameObject& platform);
+        void addPlatform(GameObject platform);
         void addMovingObject(const GameObject& movingObject);
         void removePlayer(int id);
         void setMap(OneVsOne& newMap);

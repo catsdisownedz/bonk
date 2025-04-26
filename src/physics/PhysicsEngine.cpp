@@ -1,8 +1,10 @@
 #include "../../include/physics/PhysicsEngine.h"
 #include "../../include/physics/GameObject.h"
 #include "../../include/physics/Player.h"
+#include "../../include/physics/platform.h"
 #include <utility>
 #include <math.h>
+#include <iostream>
 
 //need to handle collision at some point
 //x and y accelerations are not 100% done
@@ -44,16 +46,41 @@ void PhysicsEngine::applyForce(GameObject& object, double forceX, double forceY)
 // needs adjustments based on object type
 // if player -> pos + circle radius
 //the idea would be calling this function in the game loop, and if it returns true, game loop should call another function on the 2 objects
+// radius = 0.08
 bool PhysicsEngine::checkCollision(GameObject& object1, GameObject& object2){
-    pair<double, double> object1_position = object1.getPosition();
-    pair<double, double> object2_position = object2.getPosition();
-    if( object1_position.first == object2_position.second && object1_position.second == object2_position.second){
-        return true;
-    }
-    else {
+    Player* player1 = dynamic_cast<Player*> (&object1);
+    Player* player2 = dynamic_cast<Player*> (&object2);
+    cout<<"idk";
+    if(player1 && player2){
+        //return(checkPlayerCollision(*player1, *player2));
         return false;
     }
+    else if(player1){
+        cout<<"second if";
+        Platform* platform = dynamic_cast<Platform*> (&object2);
+        cout<<"casted";
+        return(checkWallCollision(*player1, *platform));
+    }
+    else{
+        cout<<"third else";
+        Platform* platform = dynamic_cast<Platform*> (&object1);
+        return(checkWallCollision(*player2, *platform));
+
+    }
 }
+
+bool PhysicsEngine::checkWallCollision(Player& player, Platform& platform){
+    cout<<"why ded";
+    pair<double, double> player_position = player.getPosition();
+    pair<double, double> platform_position = platform.getPosition();
+    cout<<"are you ded";
+    double closestX = min(abs(player_position.first - platform_position.first), abs(player_position.first - (platform_position.first + platform.getLength())));
+    //double closestX = max(platform_position.first, min(player_position.first, platform_position.first + platform.getLength()));
+    double closestY= min(abs(player_position.second - platform_position.second) , abs(player_position.second - (platform_position.second - platform.getWidth())));
+    return ( closestX <= 0.08 || closestY <= 0.08);     
+}
+
+
 
 void PhysicsEngine::resolveCollision(GameObject& object1, GameObject& object2){
     Player* player1 = dynamic_cast<Player*> (&object1);
@@ -116,6 +143,7 @@ void PhysicsEngine::resolvePlayerCollision(Player& p1, Player& p2) {
 
 void PhysicsEngine::resolveWallCollision(Player& player, GameObject& wall) {
     //TODO: implement proper collision
+    player.setVelocity({0,0});
 }
 
 void PhysicsEngine::applyFriction(GameObject& object, double friction) {

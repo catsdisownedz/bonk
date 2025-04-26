@@ -19,7 +19,7 @@ Renderer::Renderer(){
 void Renderer::addPlayer(const Player& player) {
     players.push_back(player);
 }
-void Renderer::addPlatform(const GameObject& platform) {
+void Renderer::addPlatform(GameObject platform) {
     platforms.push_back(platform);
 }
 void Renderer::addMovingObject(const GameObject& movingObject) {
@@ -34,8 +34,12 @@ void Renderer::removePlayer(int id) {
     }
 }
 
+//need to edit this later
 void Renderer::setMap(OneVsOne& newMap) {
     map = newMap;
+    addPlatform(map.getPlatforms()[0]);
+    addPlatform(map.getPlatforms()[1]);
+
 }
 
 void Renderer::display() {
@@ -70,8 +74,13 @@ void Renderer::update(){
     for (auto& player: players){
         player.handleInput(inputManager);
         //player.tick();
+        /*for(auto& platform: platforms){
+            bool collided = physicsEngine.checkCollision(player, platform);
+            cout<< collided <<'\n';
+        }*/
         physicsEngine.updatePhysics(player, 0.016);
-        cout<<player.getVelocity().first;
+
+        //cout<<player.getVelocity().first;
     }
     glutPostRedisplay();
     
