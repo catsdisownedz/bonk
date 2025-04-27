@@ -8,19 +8,19 @@ using namespace std;
 
 extern PhysicsEngine physics;
 
-Player::Player() : GameObject(0,0) {
+Player::Player() : GameObject(0, 0) {
     score = 0;
     id = 0;
     jumping = false;
     isAlive = true;
     isMoving = false;
 }
+
 void Player::update(pair<double, double> position, pair<double, double> velocity, pair<double, double> momentum, pair<double, double> acceleration) {
     GameObject::update(position, velocity, momentum, acceleration);
-
 }
 
-bool Player::isJumping(){
+bool Player::isJumping() {
     return jumping;
 }
 
@@ -28,44 +28,51 @@ bool Player::getIsMoving() {
     return isMoving;
 }
 
-//double XPos=0.0, YPos=0.0;
-
 void Player::handleInput(const InputManager& input) {
     auto vel = getVelocity();
     const double maxSpeed = 0.2;
     const double accel = 0.01;
+    const double jumpVelocity = 0.25;
 
-    // Accelerate left or right
-    if (input.isPressed('a')) {
+    bool moveLeft = input.isPressed('a');
+    bool moveRight = input.isPressed('d');
+    bool jumpPressed = input.isPressed('w');
+    bool moveAndJumpLeft = input.isCombo('a', 'w');
+    bool moveAndJumpRight = input.isCombo('d', 'w');
+
+    // Movement handling
+    if (moveLeft) {
         vel.first = max(vel.first - accel, -maxSpeed);
-    } else if (input.isPressed('d')) {
+    } 
+    if (moveRight) {
         vel.first = min(vel.first + accel, maxSpeed);
-    } else {
-        //gradual slowing down
+    }
+    if (!moveLeft && !moveRight) {
+        // Gradual slow down when no horizontal movement key pressed
         vel.first *= 0.9;
         if (abs(vel.first) < 0.001) vel.first = 0;
     }
 
-    // Jumping
-    if (input.isPressed('w') && !jumping) {
-        vel.second = 0.25;
+    // Jumping handling
+    if (jumpPressed && !jumping) {
+        vel.second = jumpVelocity;
         jumping = true;
+        cout << "[Input] Jump pressed (W)\n";
     }
-if (input.isCombo('a', 'w')){
-        cout << "[Combo] aw - Top Left\n";
-        vel.first = max(vel.first - accel, -maxSpeed);
-        vel.second += 0.25;
-        jumping = true;
-    } 
-    if (input.isCombo('d', 'w')){
-        cout << "[Combo] wd - Top Right\n";
-        vel.first = min(vel.first + accel, maxSpeed);
-        vel.second += 0.25;
-        jumping = true;
-    } 
 
-    // Print current velocity
-    //cout << "Velocity: (" << vel.first << ", " << vel.second << ")\n";
+    // Diagonal jump combos
+    if (moveAndJumpLeft && !jumping) {
+        vel.first = max(vel.first - accel, -maxSpeed);
+        vel.second = jumpVelocity;
+        jumping = true;
+        cout << "[Combo] aw - Top Left Jump\n";
+    } 
+    if (moveAndJumpRight && !jumping) {
+        vel.first = min(vel.first + accel, maxSpeed);
+        vel.second = jumpVelocity;
+        jumping = true;
+        cout << "[Combo] wd - Top Right Jump\n";
+    } 
 
     setVelocity(vel);
 }
@@ -74,35 +81,30 @@ void Player::setJumping(bool isJumping) {
     jumping = isJumping;
 }
 
-
-void Player::draw(){
+void Player::draw() {
     auto pos = getPosition();
     glColor3f(1.0, 0.2, 0.2);
     glBegin(GL_POLYGON);
     for (int i = 0; i < 360; i += 10) {
         float rad = i * 3.14f / 180;
-        glVertex2f(pos.first + 0.08 * cos(rad), pos.second + 0.08 * sin(rad));//we nedd to somehow coordinate it according to the map's dimensions
-        //i removed the 0.15 mn hena 
+        glVertex2f(pos.first + 0.08 * cos(rad), pos.second + 0.08 * sin(rad));
     }
     glEnd();
 }
 
-
 void Player::jump() {
     if (!jumping) {
-        setVelocity({getVelocity().first, 0.015});
+        setVelocity({getVelocity().first, 0.25}); // Make this match jumpVelocity
         jumping = true;
     }
 }
 
-void Player::display(){
+void Player::display() {
     auto pos = getPosition();
     glPushMatrix();
     glTranslatef(pos.first, pos.second, 0.0);
     draw();
     glPopMatrix();
-    //glFlush();
-    // glutSwapBuffers();
 }
 
 void Player::tick() {

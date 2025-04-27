@@ -9,7 +9,7 @@ public:
     virtual ~GameObject() {};
     void drawPlatform();
     void drawPlayers();
-    pair<double, double> getPosition();
+    pair<double, double> getPosition() const;
     void setPosition(pair<double, double> newPosition);
     pair<double, double> getVelocity();
     void setVelocity(pair<double, double> newVelocity);

@@ -74,14 +74,19 @@ void Renderer::update() {
         player.handleInput(inputManager);         // Read player input
         physicsEngine.updatePhysics(player, 0.016); // Apply physics (gravity, velocity)
 
+        Platform* collidedPlatform = nullptr;
+
         for (auto& platform : map.getPlatforms()) {
             if (physicsEngine.checkCollision(player, platform)) {
-                //cout << "Collided!\n";
-                physicsEngine.resolveCollision(player, platform); // Only resolve if collision detected
-                
-                //cout << "[Renderer] Collision detected and resolved\n";
+                collidedPlatform = &platform;
+                break;
             }
         }
+
+        if (collidedPlatform) {
+            physicsEngine.resolveCollision(player, *collidedPlatform);
+        }
+
 
         // (Optional) If you have multiple players and want to check player-player collisions later:
         // for (auto& otherPlayer : players) {

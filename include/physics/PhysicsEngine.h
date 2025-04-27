@@ -25,7 +25,7 @@ class PhysicsEngine {
         
 
     private:
-        const double gravity = 0.8;
+        const double gravity = 1;
         const double friction = 0.1;
         const double airResistance = 0.05;
         const double timeStep = 0.016; // 60 FPS

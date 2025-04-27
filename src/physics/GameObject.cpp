@@ -11,7 +11,7 @@ GameObject::GameObject(double x, double y)
     acceleration = {0.0, 0.0};
     mass = 1.0;
 }
-pair<double, double> GameObject::getPosition() { return position; }
+pair<double, double> GameObject::getPosition() const { return position; }
 void GameObject::setPosition(pair<double, double> newPosition) { position = newPosition; }
 pair<double, double> GameObject::getVelocity() { return velocity; }
 void GameObject::setVelocity(pair<double, double> newVelocity) { velocity = newVelocity; }
