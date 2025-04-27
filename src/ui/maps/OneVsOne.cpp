@@ -35,10 +35,3 @@ void OneVsOne::draw()
     // glVertex2f(0.67f, 0.07f);
     // glEnd();
 }
-
-// void OneVsOne::display()
-// {
-//     glClear(GL_COLOR_BUFFER_BIT);
-//     draw();
-//     glFlush();
-// }
