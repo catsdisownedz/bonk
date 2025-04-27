@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bonk WebSocket Tester</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      h1 {
+        color: #2c3e50;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+      }
+      button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background-color: #2980b9;
+      }
+      #status {
+        font-weight: bold;
+      }
+      #log {
+        border: 1px solid #ddd;
+        padding: 10px;
+        margin-top: 10px;
+        height: 200px;
+        overflow-y: auto;
+        background-color: #f9f9f9;
+      }
+      .sent {
+        color: #27ae60;
+      }
+      .received {
+        color: #2980b9;
+      }
+      .error {
+        color: #c0392b;
+      }
+      .system {
+        color: #7f8c8d;
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Bonk WebSocket Tester</h1>
+
+    <div>
+      <button id="connect">Connect</button>
+      <button id="disconnect" disabled>Disconnect</button>
+      <span>Status: <span id="status">Disconnected</span></span>
+    </div>
+
+    <div>
+      <input
+        type="text"
+        id="message"
+        placeholder="Type a message to send"
+        style="width: 70%"
+      />
+      <button id="send" disabled>Send</button>
+    </div>
+
+    <div id="log"></div>
+
+    <script>
+      // DOM elements
+      const connectBtn = document.getElementById("connect");
+      const disconnectBtn = document.getElementById("disconnect");
+      const sendBtn = document.getElementById("send");
+      const statusEl = document.getElementById("status");
+      const messageInput = document.getElementById("message");
+      const logEl = document.getElementById("log");
+
+      // WebSocket instance
+      let socket = null;
+
+      // Helper to add log entries
+      function log(message, type) {
+        const entry = document.createElement("div");
+        entry.className = type;
+        entry.textContent = message;
+        logEl.appendChild(entry);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      // Connect to WebSocket
+      connectBtn.addEventListener("click", () => {
+        // Create WebSocket connection
+        const wsProtocol = location.protocol === "https:" ? "wss://" : "ws://";
+        const host =
+          location.hostname === "" ? "localhost:8080" : location.host;
+        const wsUrl = `${wsProtocol}${host}/ws`;
+
+        try {
+          log(`Connecting to ${wsUrl}...`, "system");
+          socket = new WebSocket(wsUrl);
+
+          socket.onopen = () => {
+            statusEl.textContent = "Connected";
+            connectBtn.disabled = true;
+            disconnectBtn.disabled = false;
+            sendBtn.disabled = false;
+            log("Connected to server", "system");
+          };
+
+          socket.onclose = (event) => {
+            statusEl.textContent = "Disconnected";
+            connectBtn.disabled = false;
+            disconnectBtn.disabled = true;
+            sendBtn.disabled = true;
+            log(
+              `Disconnected: Code ${event.code} - ${
+                event.reason || "No reason provided"
+              }`,
+              "system"
+            );
+            socket = null;
+          };
+
+          socket.onerror = (error) => {
+            log(`Error: ${error.message || "Unknown error"}`, "error");
+          };
+
+          socket.onmessage = (event) => {
+            log(`Received: ${event.data}`, "received");
+          };
+        } catch (error) {
+          log(`Error creating WebSocket: ${error.message}`, "error");
+        }
+      });
+
+      // Disconnect from WebSocket
+      disconnectBtn.addEventListener("click", () => {
+        if (socket) {
+          socket.close();
+        }
+      });
+
+      // Send message
+      sendBtn.addEventListener("click", () => {
+        const message = messageInput.value.trim();
+        if (message && socket) {
+          socket.send(message);
+          log(`Sent: ${message}`, "sent");
+          messageInput.value = "";
+        }
+      });
+
+      // Send message on Enter key
+      messageInput.addEventListener("keypress", (event) => {
+        if (event.key === "Enter" && !sendBtn.disabled) {
+          sendBtn.click();
+        }
+      });
+
+      // Try to auto-connect on page load
+      setTimeout(() => {
+        // Auto-connect if on localhost
+        if (
+          location.hostname === "" ||
+          location.hostname === "localhost" ||
+          location.hostname === "127.0.0.1"
+        ) {
+          connectBtn.click();
+        }
+      }, 500);
+    </script>
+  </body>
+</html>

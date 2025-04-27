@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Tester</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      #status {
+        font-weight: bold;
+      }
+      #messages {
+        border: 1px solid #ccc;
+        height: 300px;
+        overflow-y: auto;
+        margin: 10px 0;
+        padding: 10px;
+      }
+      .received {
+        color: blue;
+      }
+      .sent {
+        color: green;
+      }
+      .system {
+        color: #777;
+        font-style: italic;
+      }
+      .error {
+        color: red;
+        font-weight: bold;
+      }
+      button,
+      input {
+        padding: 8px;
+        margin: 5px 0;
+      }
+      .debug-info {
+        background-color: #f7f7f7;
+        border: 1px solid #ddd;
+        padding: 10px;
+        margin-top: 20px;
+        font-family: monospace;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>WebSocket Tester</h1>
+
+    <div>
+      <label for="url">WebSocket URL:</label>
+      <input
+        type="text"
+        id="url"
+        value="ws://localhost:8080"
+        style="width: 300px"
+      />
+      <button id="connect">Connect</button>
+      <button id="disconnect" disabled>Disconnect</button>
+    </div>
+
+    <p>Status: <span id="status">Disconnected</span></p>
+
+    <div id="messages"></div>
+
+    <div>
+      <input
+        type="text"
+        id="message"
+        placeholder="Type a message..."
+        style="width: 70%"
+      />
+      <button id="send" disabled>Send</button>
+    </div>
+
+    <div class="debug-info" id="debug">
+      Server Status: Use the "Connect" button to test your WebSocket connection.
+      Common issues: 1. If you get "Connection refused" - the server is not
+      running 2. If you get "Invalid URL" - check the WebSocket URL format
+      (ws:// or wss://) 3. If connection closes immediately - server may not
+      support WebSockets at this path HTTP endpoints to test: - Health check:
+      <a href="http://localhost:8080/health" target="_blank" rel="noopener"
+        >http://localhost:8080/health</a
+      >
+      - Web interface:
+      <a href="http://localhost:8080" target="_blank" rel="noopener"
+        >http://localhost:8080</a
+      >
+    </div>
+
+    <script>
+      const connectBtn = document.getElementById("connect");
+      const disconnectBtn = document.getElementById("disconnect");
+      const sendBtn = document.getElementById("send");
+      const statusEl = document.getElementById("status");
+      const messagesEl = document.getElementById("messages");
+      const messageInput = document.getElementById("message");
+      const urlInput = document.getElementById("url");
+      const debugEl = document.getElementById("debug");
+
+      let socket = null;
+
+      function addMessage(text, type) {
+        const msgEl = document.createElement("div");
+        msgEl.classList.add(type);
+        msgEl.textContent = text;
+        messagesEl.appendChild(msgEl);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function updateDebug(info) {
+        const now = new Date().toLocaleTimeString();
+        debugEl.innerHTML += `\n[${now}] ${info}`;
+      }
+
+      connectBtn.addEventListener("click", () => {
+        try {
+          statusEl.textContent = "Connecting...";
+          updateDebug(`Attempting to connect to ${urlInput.value}`);
+
+          // Try to add /ws if it's not there
+          let wsUrl = urlInput.value;
+          if (!wsUrl.endsWith("/ws")) {
+            const oldUrl = wsUrl;
+            wsUrl = wsUrl.endsWith("/") ? wsUrl + "ws" : wsUrl + "/ws";
+            updateDebug(`Modified URL from ${oldUrl} to ${wsUrl}`);
+          }
+
+          socket = new WebSocket(wsUrl);
+
+          socket.onopen = () => {
+            statusEl.textContent = "Connected";
+            connectBtn.disabled = true;
+            disconnectBtn.disabled = false;
+            sendBtn.disabled = false;
+            addMessage("Connected to server", "system");
+            updateDebug("WebSocket connection established successfully!");
+          };
+
+          socket.onmessage = (event) => {
+            addMessage(`Received: ${event.data}`, "received");
+            updateDebug(
+              `Message received: ${event.data.substring(0, 50)}${
+                event.data.length > 50 ? "..." : ""
+              }`
+            );
+          };
+
+          socket.onclose = (event) => {
+            statusEl.textContent = "Disconnected";
+            connectBtn.disabled = false;
+            disconnectBtn.disabled = true;
+            sendBtn.disabled = true;
+            socket = null;
+            addMessage(
+              `Disconnected from server: Code ${event.code} - ${
+                event.reason || "No reason provided"
+              }`,
+              "system"
+            );
+            updateDebug(
+              `Connection closed: Code ${event.code} - ${
+                event.reason || "No reason provided"
+              }`
+            );
+          };
+
+          socket.onerror = (error) => {
+            statusEl.textContent = "Error";
+            addMessage(`Error connecting to WebSocket server`, "error");
+            updateDebug(
+              `WebSocket error! Try removing "/ws" from the URL if you're having trouble.`
+            );
+          };
+        } catch (error) {
+          statusEl.textContent = "Error";
+          addMessage(`Connection error: ${error.message}`, "error");
+          updateDebug(`Exception: ${error.message}`);
+        }
+      });
+
+      disconnectBtn.addEventListener("click", () => {
+        if (socket) {
+          updateDebug("Disconnecting...");
+          socket.close();
+        }
+      });
+
+      sendBtn.addEventListener("click", () => {
+        if (socket && messageInput.value) {
+          socket.send(messageInput.value);
+          addMessage(`Sent: ${messageInput.value}`, "sent");
+          updateDebug(`Message sent: ${messageInput.value}`);
+          messageInput.value = "";
+        }
+      });
+
+      messageInput.addEventListener("keypress", (event) => {
+        if (event.key === "Enter" && !sendBtn.disabled) {
+          sendBtn.click();
+        }
+      });
+
+      // Check if the WebSocket URL protocol matches the page protocol
+      if (
+        window.location.protocol === "https:" &&
+        urlInput.value.startsWith("ws://")
+      ) {
+        addMessage(
+          "Warning: You are on HTTPS but trying to connect to a non-secure WebSocket. This may be blocked by your browser.",
+          "error"
+        );
+        updateDebug(
+          "SECURITY WARNING: Consider using wss:// instead of ws:// when on HTTPS pages"
+        );
+      }
+    </script>
+  </body>
+</html>

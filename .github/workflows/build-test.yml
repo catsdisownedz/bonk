@@ -1,0 +1,40 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake git libboost-all-dev libssl-dev
+
+      - name: Clone WebSocket++
+        run: |
+          mkdir -p include/network
+          git clone https://github.com/zaphoyd/websocketpp.git include/network/websocketpp
+
+      - name: Configure and build
+        run: |
+          mkdir -p build
+          cd build
+          cmake ..
+          make
+
+      - name: Test build artifacts
+        run: |
+          if [ -f "build/server" ]; then
+            echo "✅ Build successful"
+          else
+            echo "❌ Build failed"
+            exit 1
+          fi

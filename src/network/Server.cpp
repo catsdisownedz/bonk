@@ -1,6 +1,5 @@
-// recieves input from clients and updates el game
-// broadcatss el updates state to kol el clients
-// handles password verification and player queues for mid roun djoining
+// Server implementation using WebSocket++
+// Handles game state updates and client connections
 
 #include "../../include/network/Server.h"
 #include "../../include/network/web.h"
@@ -8,242 +7,231 @@
 #include <cstdlib>
 #include <string>
 #include <chrono>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <unistd.h>
+#include <functional>
+#include <atomic>
 
-using namespace std;
+// Debug logging helper
+#define LOG(msg) std::cout << "[" << std::chrono::system_clock::now().time_since_epoch().count() / 1000000 << "ms] " << msg << std::endl
 
-Server::Server() : server(nullptr), running(false) {}
+Server::Server() : running(false)
+{
+    // Configure WebSocket server
+    server.clear_access_channels(websocketpp::log::alevel::all);
+    server.set_access_channels(websocketpp::log::alevel::app);
+    // Enable error logs
+    server.clear_error_channels(websocketpp::log::elevel::all);
+    server.set_error_channels(websocketpp::log::elevel::fatal);
 
-// Clean up server and deinitialize ENet library when done
+    // Initialize Asio transport
+    server.init_asio();
+
+    // Set WebSocket handlers
+    server.set_open_handler(std::bind(&Server::on_open, this, std::placeholders::_1));
+    server.set_close_handler(std::bind(&Server::on_close, this, std::placeholders::_1));
+    server.set_message_handler(std::bind(&Server::on_message, this, std::placeholders::_1, std::placeholders::_2));
+
+    // Set HTTP handler for health checks and web interface
+    server.set_http_handler(std::bind(&Server::on_http, this, std::placeholders::_1));
+
+    // Always accept WebSocket connections on any path
+    server.set_validate_handler([](websocketpp::connection_hdl)
+                                {
+        LOG("WebSocket validation request received - accepting");
+        return true; });
+
+    LOG("Server constructor completed");
+}
+
 Server::~Server()
 {
-    // Stop health check thread
-    running = false;
-    if (healthCheckThread.joinable())
+    LOG("Server shutting down...");
+
+    // Stop the server
+    if (running)
     {
-        healthCheckThread.join();
+        server.stop_listening();
+        server.stop();
     }
 
-    if (server)
-        enet_host_destroy(server);
-    enet_deinitialize();
+    LOG("Server shutdown complete");
 }
 
 bool Server::initialize()
 {
-    if (enet_initialize() != 0)
+    LOG("Initializing server...");
+
+    try
     {
-        cerr << "ENet failed to initialize\n";
+        // Get the PORT environment variable (for Cloud Run)
+        const char *port_env = getenv("PORT");
+        int port = port_env ? std::stoi(port_env) : 8080;
+
+        // Try up to 10 ports starting from the specified one
+        bool bound = false;
+        int max_attempts = 10;
+
+        for (int attempt = 0; attempt < max_attempts; attempt++)
+        {
+            try
+            {
+                int current_port = port + attempt;
+                // Set up the endpoint
+                server.listen(current_port);
+                LOG("Server initialized on port " << current_port);
+                bound = true;
+                break;
+            }
+            catch (const websocketpp::exception &e)
+            {
+                if (attempt < max_attempts - 1)
+                {
+                    LOG("Port " << (port + attempt) << " in use, trying next port...");
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+
+        if (!bound)
+        {
+            LOG("Could not bind to any port after " << max_attempts << " attempts");
+            return false;
+        }
+
+        server.get_alog().write(websocketpp::log::alevel::app, "Server ready for connections");
+        return true;
+    }
+    catch (const std::exception &e)
+    {
+        LOG("Error initializing server: " << e.what());
         return false;
     }
-
-    // Get the PORT environment variable (for Cloud Run)
-    const char *port_env = getenv("PORT");
-    int port = port_env ? stoi(port_env) : 8080;
-
-    address.host = ENET_HOST_ANY;
-    address.port = port;
-
-    // Server has a max of 32 clients, and 2 channels
-    server = enet_host_create(&address, 32, 2, 0, 0);
-
-    if (!server)
-    {
-        cerr << "Failed to create ENet server host\n";
-        return false;
-    }
-
-    cout << "Server initialized on port " << port << "\n";
-
-    // Start health check thread
-    startHealthCheck();
-
-    return true;
-}
-
-void Server::startHealthCheck()
-{
-    running = true;
-    healthCheckThread = thread(&Server::runHealthCheck, this);
-}
-
-void Server::runHealthCheck()
-{
-    // Create a simple HTTP server for health checks
-    int server_fd;
-    struct sockaddr_in address;
-    int opt = 1;
-    int addrlen = sizeof(address);
-
-    // Creating socket file descriptor
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
-    {
-        perror("Health check socket failed");
-        return;
-    }
-
-    // Set socket options
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
-    {
-        perror("Health check setsockopt failed");
-        close(server_fd);
-        return;
-    }
-
-    // Get the PORT environment variable (for Cloud Run)
-    // Health check should run on the same port as the game server for Cloud Run
-    const char *port_env = getenv("PORT");
-    int port = port_env ? stoi(port_env) : 8080;
-
-    // Set up server address
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(port); // Use the same port as the game server
-
-    // Bind socket to address/port
-    int bind_status = ::bind(server_fd, (struct sockaddr *)&address, sizeof(address));
-    if (bind_status == -1)
-    {
-        perror("Health check bind failed");
-        close(server_fd);
-        return;
-    }
-
-    // Listen for connections
-    if (listen(server_fd, 3) < 0)
-    {
-        perror("Health check listen failed");
-        close(server_fd);
-        return;
-    }
-
-    cout << "Health check and web interface server started on port " << port << endl;
-
-    // Main health check loop
-    while (running)
-    {
-        // Accept connection (non-blocking with timeout)
-        fd_set readfds;
-        FD_ZERO(&readfds);
-        FD_SET(server_fd, &readfds);
-
-        struct timeval timeout;
-        timeout.tv_sec = 1;
-        timeout.tv_usec = 0;
-
-        int activity = select(server_fd + 1, &readfds, NULL, NULL, &timeout);
-
-        if (activity < 0)
-        {
-            if (errno != EINTR)
-            {
-                perror("Health check select error");
-            }
-            continue;
-        }
-
-        if (activity == 0 || !FD_ISSET(server_fd, &readfds))
-        {
-            // Timeout or no data, continue
-            continue;
-        }
-
-        int new_socket;
-        if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
-        {
-            perror("Health check accept failed");
-            continue;
-        }
-
-        // Buffer for HTTP request
-        char buffer[1024] = {0};
-        int valread = read(new_socket, buffer, sizeof(buffer));
-
-        // Simple parsing to check if it's a browser request or health check
-        bool isHealthCheck = false;
-        bool isBrowserRequest = false;
-
-        if (valread > 0)
-        {
-            string request(buffer);
-            // Check if it's a health check request
-            if (request.find("GET /health") != string::npos)
-            {
-                isHealthCheck = true;
-            }
-            // Check if it's likely a browser request
-            else if (request.find("GET /") != string::npos &&
-                     (request.find("User-Agent") != string::npos ||
-                      request.find("Accept: text/html") != string::npos))
-            {
-                isBrowserRequest = true;
-            }
-        }
-
-        string response;
-        if (isHealthCheck)
-        {
-            // Health check response
-            response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 2\r\n\r\nOK";
-        }
-        else
-        {
-            // Assume it's a browser request or client testing connection
-            string htmlContent = getWebInterface();
-            response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " +
-                       to_string(htmlContent.length()) + "\r\n\r\n" + htmlContent;
-        }
-
-        send(new_socket, response.c_str(), response.length(), 0);
-        close(new_socket);
-    }
-
-    close(server_fd);
 }
 
 void Server::run()
 {
-    ENetEvent event;
+    LOG("Server starting main loop");
 
-    while (true)
+    // Start the ASIO io_service run loop
+    running = true;
+
+    try
     {
-        while (enet_host_service(server, &event, 1000) > 0)
-        {
-            switch (event.type)
-            {
-            case ENET_EVENT_TYPE_CONNECT:
-                cout << "Client Connected!\n";
-                clients.push_back(event.peer); // Add client to client list
-                break;
+        // Start the server accept loop
+        server.start_accept();
 
-            case ENET_EVENT_TYPE_RECEIVE:
-                cout << "Message Received: " << event.packet->data << "\n";
-                broadcast(string((char *)event.packet->data)); // Broadcast message to client
-                enet_packet_destroy(event.packet);             // Destroy packet after use
-                break;
-
-            case ENET_EVENT_TYPE_DISCONNECT:
-                cout << "Client Disconnected\n";
-                // Remove client from client list
-                for (auto it = clients.begin(); it != clients.end(); ++it)
-                {
-                    if (*it == event.peer)
-                    {
-                        clients.erase(it);
-                        break;
-                    }
-                }
-                break;
-            }
-        }
+        // Start the ASIO io_service run loop
+        LOG("Entering main server loop");
+        server.run();
+    }
+    catch (const std::exception &e)
+    {
+        LOG("Error in server run loop: " << e.what());
     }
 }
 
-// Create packet out of message and send it to all clients
-void Server::broadcast(const string &message)
+void Server::on_open(connection_hdl hdl)
 {
-    ENetPacket *packet = enet_packet_create(message.c_str(), message.length() + 1, ENET_PACKET_FLAG_RELIABLE);
-    enet_host_broadcast(server, 0, packet);
+    {
+        std::lock_guard<std::mutex> lock(connection_mutex);
+        connections.insert(hdl);
+    }
+
+    LOG("Client connected - total connections: " << connections.size());
+}
+
+void Server::on_close(connection_hdl hdl)
+{
+    {
+        std::lock_guard<std::mutex> lock(connection_mutex);
+        connections.erase(hdl);
+    }
+
+    LOG("Client disconnected - remaining connections: " << connections.size());
+}
+
+void Server::on_message(connection_hdl hdl, WebSocketServer::message_ptr msg)
+{
+    // Get message payload
+    std::string payload = msg->get_payload();
+    LOG("Message received: " << payload);
+
+    // Echo the message back to all clients (broadcast)
+    broadcast(payload);
+}
+
+void Server::on_http(connection_hdl hdl)
+{
+    auto conn = server.get_con_from_hdl(hdl);
+    std::string path = conn->get_resource();
+
+    LOG("HTTP request received for: " << path);
+
+    // Handle health check endpoint
+    if (path == "/health")
+    {
+        LOG("Handling health check request");
+        std::string health_json = getHealthCheckResponse();
+
+        conn->set_status(websocketpp::http::status_code::ok);
+        conn->set_body(health_json);
+        conn->append_header("Content-Type", "application/json");
+
+        LOG("Sent health check response");
+    }
+    // Handle WebSocket path for browser clients that don't auto-upgrade
+    else if (path == "/ws")
+    {
+        LOG("WebSocket endpoint requested via HTTP");
+
+        conn->set_status(websocketpp::http::status_code::ok);
+        conn->set_body("This endpoint is for WebSocket connections only. Please use a WebSocket client.");
+        conn->append_header("Content-Type", "text/plain");
+
+        LOG("Sent WebSocket endpoint response");
+    }
+    // Handle root path for web interface
+    else if (path == "/" || path == "/index.html")
+    {
+        LOG("Handling root request");
+        std::string html_content = getWebInterface();
+
+        conn->set_status(websocketpp::http::status_code::ok);
+        conn->set_body(html_content);
+        conn->append_header("Content-Type", "text/html");
+
+        LOG("Sent HTML response");
+    }
+    // Default response for unknown paths
+    else
+    {
+        LOG("Unrecognized request, sending generic OK");
+
+        conn->set_status(websocketpp::http::status_code::ok);
+        conn->set_body("OK");
+        conn->append_header("Content-Type", "text/plain");
+
+        LOG("Sent generic response");
+    }
+}
+
+void Server::broadcast(const std::string &message)
+{
+    LOG("Broadcasting message to " << connections.size() << " client(s): " << message);
+
+    std::lock_guard<std::mutex> lock(connection_mutex);
+
+    for (auto it = connections.begin(); it != connections.end(); ++it)
+    {
+        try
+        {
+            server.send(*it, message, websocketpp::frame::opcode::text);
+        }
+        catch (const std::exception &e)
+        {
+            LOG("Error sending message: " << e.what());
+        }
+    }
 }

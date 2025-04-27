@@ -1,0 +1,26 @@
+# Git
+.git
+.gitignore
+.github
+
+# Build directories
+build/
+
+# Editor files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.log
+
+# Local development scripts
+deploy_locally.sh
+test_server.sh
+
+# Exclude existing WebSocket++ if exists
+include/network/websocketpp/
+
+# Markdown files
+*.md
+LICENSE 

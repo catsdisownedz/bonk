@@ -3,81 +3,162 @@
 
 #include "../../include/network/Client.h"
 #include <iostream>
+#include <chrono>
+#include <functional>
 
-using namespace std;
+#define LOG(msg) std::cout << "[" << std::chrono::system_clock::now().time_since_epoch().count() / 1000000 << "ms] " << msg << std::endl
 
-Client::Client() : client(nullptr), peer(nullptr) {}
+Client::Client() : running(false)
+{
+    // Configure WebSocket client
+    client.clear_access_channels(websocketpp::log::alevel::all);
+    client.clear_error_channels(websocketpp::log::elevel::all);
+
+    // Set WebSocket handlers
+    client.set_open_handler(std::bind(&Client::on_open, this, std::placeholders::_1));
+    client.set_close_handler(std::bind(&Client::on_close, this, std::placeholders::_1));
+    client.set_message_handler(std::bind(&Client::on_message, this, std::placeholders::_1, std::placeholders::_2));
+    client.set_fail_handler(std::bind(&Client::on_fail, this, std::placeholders::_1));
+
+    // Initialize ASIO
+    client.init_asio();
+}
 
 Client::~Client()
 {
-    if (client)
-        enet_host_destroy(client);
-    enet_deinitialize();
+    disconnect();
 }
 
-bool Client::connectToServer(const string &ip, enet_uint16 port)
+bool Client::connectToServer(const std::string &uri)
 {
-    if (enet_initialize() != 0)
+    try
     {
-        cerr << "ENet initialization failed\n";
-        return false;
-    }
+        LOG("Connecting to " << uri);
 
-    // Create ENet client host
-    client = enet_host_create(nullptr, 1, 2, 0, 0);
-    if (!client)
-    {
-        cerr << "Failed to create ENet client\n";
-        return false;
-    }
+        // Create a connection to the given URI
+        websocketpp::lib::error_code ec;
+        WebSocketClient::connection_ptr con = client.get_connection(uri, ec);
 
-    ENetAddress address;
+        if (ec)
+        {
+            LOG("Could not create connection: " << ec.message());
+            return false;
+        }
 
-    // Set server IP and port
-    enet_address_set_host(&address, ip.c_str());
-    address.port = port;
+        // Store the connection for later use
+        {
+            std::lock_guard<std::mutex> lock(connection_mutex);
+            connection = con->get_handle();
+        }
 
-    peer = enet_host_connect(client, &address, 2, 0);
-    if (!peer)
-    {
-        cerr << "No available peers for initializing connection\n";
-        return false;
-    }
+        // Start the ASIO io_service run loop
+        running = true;
+        client.connect(con);
 
-    ENetEvent event;
-    if (enet_host_service(client, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT)
-    {
-        cout << "Connected to " << ip << ":" << port << "\n";
+        // Start the client thread
+        client_thread = std::thread([this]()
+                                    {
+            try {
+                client.run();
+            } catch (const std::exception& e) {
+                LOG("Exception in client thread: " << e.what());
+            } });
+
         return true;
     }
-    else
+    catch (const std::exception &e)
     {
-        cerr << "Connection to " << ip << "failed\n";
-        enet_peer_reset(peer); // Reset peer
+        LOG("Error in connect: " << e.what());
         return false;
     }
 }
 
-// Create packet from message and send it to server 
-void Client::sendMessage(const string &message)
+void Client::disconnect()
 {
-    ENetPacket *packet = enet_packet_create(message.c_str(), message.length() + 1, ENET_PACKET_FLAG_RELIABLE);
-    enet_peer_send(peer, 0, packet);
+    if (!running)
+    {
+        return;
+    }
+
+    LOG("Disconnecting...");
+
+    try
+    {
+        std::lock_guard<std::mutex> lock(connection_mutex);
+
+        if (connection.lock())
+        {
+            client.close(connection, websocketpp::close::status::normal, "Closing connection");
+        }
+
+        running = false;
+
+        // Stop the client's run loop and join the thread
+        client.stop();
+
+        if (client_thread.joinable())
+        {
+            client_thread.join();
+        }
+
+        LOG("Disconnected");
+    }
+    catch (const std::exception &e)
+    {
+        LOG("Error in disconnect: " << e.what());
+    }
 }
 
-void Client::receiveLoop()
+void Client::sendMessage(const std::string &message)
 {
-    ENetEvent event;
-
-    while (true)
+    try
     {
-        while (enet_host_service(client, &event, 1000) > 0)
+        std::lock_guard<std::mutex> lock(connection_mutex);
+
+        if (!connection.lock())
         {
-            if (event.type == ENET_EVENT_TYPE_RECEIVE)
-            {
-                cout << "Received from server: " << event.packet->data << "\n";
-                enet_packet_destroy(event.packet);
-            }
+            LOG("Not connected");
+            return;
         }
+
+        client.send(connection, message, websocketpp::frame::opcode::text);
+        LOG("Sent message: " << message);
     }
+    catch (const std::exception &e)
+    {
+        LOG("Error sending message: " << e.what());
+    }
+}
+
+void Client::setMessageHandler(std::function<void(const std::string &)> handler)
+{
+    message_handler = handler;
+}
+
+void Client::on_open(websocketpp::connection_hdl hdl)
+{
+    LOG("Connection opened");
+}
+
+void Client::on_close(websocketpp::connection_hdl hdl)
+{
+    LOG("Connection closed");
+}
+
+void Client::on_message(websocketpp::connection_hdl hdl, WebSocketClient::message_ptr msg)
+{
+    std::string payload = msg->get_payload();
+    LOG("Received from server: " << payload);
+
+    // Call the message handler if set
+    if (message_handler)
+    {
+        message_handler(payload);
+    }
+}
+
+void Client::on_fail(websocketpp::connection_hdl hdl)
+{
+    WebSocketClient::connection_ptr con = client.get_con_from_hdl(hdl);
+    LOG("Connection failed: " << con->get_ec().message());
 }

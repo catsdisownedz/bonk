@@ -1,36 +1,60 @@
 cmake_minimum_required(VERSION 3.10)
-project(bonk)
+project(BonkServer)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Find ENet package
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(ENET REQUIRED libenet)
+# Silence deprecated OpenGL warnings on macOS
+if(APPLE)
+  add_definitions(-DGL_SILENCE_DEPRECATION)
+endif()
 
-include_directories(${ENET_INCLUDE_DIRS})
-link_directories(${ENET_LIBRARY_DIRS})
+# Find Boost
+find_package(Boost REQUIRED COMPONENTS system thread)
+include_directories(${Boost_INCLUDE_DIRS})
+
+# Find OpenSSL
+find_package(OpenSSL REQUIRED)
+include_directories(${OPENSSL_INCLUDE_DIR})
+
+# Find OpenGL
+find_package(OpenGL REQUIRED)
+include_directories(${OPENGL_INCLUDE_DIR})
 
 # Include directories
 include_directories(include)
 
-# Server executable
-add_executable(server 
-    src/main.cpp
-    src/network/Server.cpp
-    src/network/web.cpp
+# Add WebSocket++ (our local version)
+include_directories(include/network)
+
+# Debug message
+message(STATUS "Source files directory: ${CMAKE_SOURCE_DIR}/src")
+
+# All source files
+add_executable(bonk_server
+  src/main.cpp
+  src/network/Server.cpp
+  src/network/Client.cpp
+  src/network/NetworkManager.cpp
+  src/network/web.cpp
+  src/physics/Player.cpp
+  src/physics/Platform.cpp
+  src/physics/GameObject.cpp
+  src/physics/PhysicsEngine.cpp
+  src/core/InputManager.cpp
+  src/glad.c
 )
 
-target_link_libraries(server ${ENET_LIBRARIES})
-
-# Client executable
-add_executable(client
-    src/network/Client.cpp
+# Link libraries
+target_link_libraries(bonk_server
+  ${Boost_LIBRARIES}
+  ${OPENSSL_LIBRARIES}
+  ${OPENGL_LIBRARIES}
+  pthread
 )
 
-target_link_libraries(client ${ENET_LIBRARIES})
-
-# Installation
-install(TARGETS server client
-    RUNTIME DESTINATION bin
-) 
+if(APPLE)
+  find_library(CORE_FOUNDATION_FRAMEWORK CoreFoundation)
+  find_library(CORE_SERVICES_FRAMEWORK CoreServices)
+  target_link_libraries(bonk_server ${CORE_FOUNDATION_FRAMEWORK} ${CORE_SERVICES_FRAMEWORK})
+endif()

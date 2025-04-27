@@ -1,5 +1,7 @@
 # Ignore VSCode settings
 .vscode/
+compile_flags.txt
+.clangd
 
 # Ignore build outputs
 /build/
@@ -8,7 +10,6 @@
 
 # Ignore system files
 .DS_Store
-.clangd
 Thumbs.db
 
 # Ignore glad and KHR files and directories
@@ -16,4 +17,8 @@ Thumbs.db
 /include/glad/
 /include/KHR/
 
-compile_flags.txt
+# Ignore installation files
+google-cloud-cli-441.0.0-darwin-arm.tar.gz
+
+# Ignore generated binaries
+asio_fixes
