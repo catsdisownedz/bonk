@@ -10,6 +10,7 @@ if(APPLE)
 endif()
 
 # Find Boost
+cmake_policy(SET CMP0074 NEW)
 find_package(Boost REQUIRED COMPONENTS system thread)
 include_directories(${Boost_INCLUDE_DIRS})
 
@@ -18,7 +19,7 @@ find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 
 # Find OpenGL
-find_package(OpenGL REQUIRED)
+find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 include_directories(${OPENGL_INCLUDE_DIR})
 
 # Include directories

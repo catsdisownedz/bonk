@@ -16,8 +16,9 @@ Thumbs.db
 /src/glad.c
 /include/glad/
 /include/KHR/
+/include/network/websocketpp
 
-# Ignore installation files
+# Ignore installation files\
 google-cloud-cli-441.0.0-darwin-arm.tar.gz
 
 # Ignore generated binaries
