@@ -5,7 +5,7 @@
 #include "../../../include/core/InputManager.h"
 #include "../../../include/physics/PhysicsEngine.h"
 
-PhysicsEngine physics;
+//PhysicsEngine physics;
 InputManager inputManager;
 OneVsOne map;  
 Player ball;
