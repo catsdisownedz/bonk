@@ -9,6 +9,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Boost 1.71 REQUIRED COMPONENTS system thread)
 find_package(OpenSSL REQUIRED)
 find_package(OpenGL REQUIRED)
+# Add GLUT detection for Linux/Windows ▼
+if(NOT APPLE)
+  find_package(GLUT REQUIRED)
+endif()
 
 # --- Executable Setup ---
 file(GLOB_RECURSE SOURCE_FILES 
@@ -26,6 +30,8 @@ add_executable(bonk_server ${SOURCE_FILES})  # <-- TARGET CREATED HERE
 target_include_directories(bonk_server PRIVATE
   include
   include/network
+  /usr/include
+  /usr/include/GL
   ${Boost_INCLUDE_DIRS}
   ${OPENSSL_INCLUDE_DIR}
   ${OPENGL_INCLUDE_DIRS}
@@ -49,6 +55,7 @@ elseif(UNIX)
   # Linux/Unix
   target_link_libraries(bonk_server PRIVATE
     OpenGL::OpenGL
+    GLUT::GLUT
     X11
     dl
   )
