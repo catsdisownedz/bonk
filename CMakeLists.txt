@@ -4,42 +4,11 @@ project(BonkServer)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Platform-specific configuration
-if(APPLE)
-    # macOS requires OpenGL framework
-    find_library(OPENGL_LIBRARY OpenGL)
-    find_library(GLUT_LIBRARY GLUT)
-    target_link_libraries(bonk_server PRIVATE
-        ${OPENGL_LIBRARY}
-        ${GLUT_LIBRARY}
-    )
-else()
-    # Linux/Windows use the standard OpenGL target
-    target_link_libraries(bonk_server PRIVATE
-        OpenGL::OpenGL
-    )
-endif()
-
 # --- Dependency Management ---
-# Modern Boost configuration
+# Must come FIRST before any target operations
 find_package(Boost 1.71 REQUIRED COMPONENTS system thread)
-
-# OpenSSL configuration
 find_package(OpenSSL REQUIRED)
-
-# Modern OpenGL configuration
 find_package(OpenGL REQUIRED)
-
-# --- Glad Handling ---
-# Check for glad.c existence
-if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/glad.c")
-  message(WARNING "glad.c not found! To generate it, run:
-    pip install glad
-    glad --profile core --api gl=4.3 --out-path src/ --generator c
-  ")
-else()
-  message(STATUS "Found glad.c in source directory")
-endif()
 
 # --- Executable Setup ---
 file(GLOB_RECURSE SOURCE_FILES 
@@ -51,9 +20,9 @@ file(GLOB_RECURSE SOURCE_FILES
   src/glad.c
 )
 
-add_executable(bonk_server ${SOURCE_FILES})
+add_executable(bonk_server ${SOURCE_FILES})  # <-- TARGET CREATED HERE
 
-# --- Modern Include Directories ---
+# --- Include Directories ---
 target_include_directories(bonk_server PRIVATE
   include
   include/network
@@ -62,32 +31,39 @@ target_include_directories(bonk_server PRIVATE
   ${OPENGL_INCLUDE_DIRS}
 )
 
-# --- Modern Linking ---
-target_link_libraries(bonk_server PRIVATE
-  Boost::system
-  Boost::thread
-  OpenSSL::SSL
-  OpenSSL::Crypto
-  OpenGL::OpenGL
-  pthread
-)
-
 # --- Platform-specific Linking ---
 if(APPLE)
+  # macOS frameworks
   find_library(COCOA_LIBRARY Cocoa)
   find_library(IOKIT_LIBRARY IOKit)
+  find_library(OPENGL_LIBRARY OpenGL)
+  find_library(GLUT_LIBRARY GLUT)
+  
   target_link_libraries(bonk_server PRIVATE
     ${COCOA_LIBRARY}
     ${IOKIT_LIBRARY}
+    ${OPENGL_LIBRARY}
+    ${GLUT_LIBRARY}
   )
 elseif(UNIX)
+  # Linux/Unix
   target_link_libraries(bonk_server PRIVATE
+    OpenGL::OpenGL
     X11
     dl
   )
 endif()
 
-# --- File Validation ---
-if(NOT SOURCE_FILES)
-  message(FATAL_ERROR "No source files found! Check your file paths.")
+# --- Common Linking ---
+target_link_libraries(bonk_server PRIVATE
+  Boost::system
+  Boost::thread
+  OpenSSL::SSL
+  OpenSSL::Crypto
+  pthread
+)
+
+# --- Glad Handling ---
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/glad.c")
+  message(WARNING "glad.c not found! Run: ...")
 endif()
