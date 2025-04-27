@@ -20,9 +20,9 @@ jobs:
 
       - name: Clone WebSocket++
         run: |
-          rm -rf include/network/websocketpp  # Delete existing directory
+          rm -rf include/network/websocketpp
           mkdir -p include/network
-          git clone https://github.com/zaphoyd/websocketpp.git include/network/websocketpp
+          git clone --branch 0.8.2 https://github.com/zaphoyd/websocketpp.git include/network/websocketpp
 
       - name: Configure and build
         run: |
