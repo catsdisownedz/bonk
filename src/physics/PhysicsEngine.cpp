@@ -25,11 +25,11 @@ void PhysicsEngine::updatePhysics(GameObject &object, double deltaTime)
         pair<double, double> currentPosition = object.getPosition();
         pair<double, double> currentMomentum = object.getMomentum();
 
-        currentVelocity.first += currentAcceleration.first * deltaTime;
-        currentVelocity.second += currentAcceleration.second * deltaTime;
+        currentVelocity.first += currentAcceleration.first * maxStep;
+        currentVelocity.second += currentAcceleration.second * maxStep;
 
-        currentPosition.first += currentVelocity.first * deltaTime;
-        currentPosition.second += currentVelocity.second * deltaTime;
+        currentPosition.first += currentVelocity.first * maxStep;
+        currentPosition.second += currentVelocity.second * maxStep;
 
         currentMomentum.first = object.getMass() * currentVelocity.first;
         currentMomentum.second = object.getMass() * currentVelocity.second;
@@ -336,25 +336,23 @@ void PhysicsEngine::resolveWallCollision(Player &player, Platform &platform)
         double playerLeft = pos.first - radius;
         double playerRight = pos.first + radius;
 
-        //  if (playerRight >= platformLeft && playerLeft < platformLeft) {
-        if (abs(player.getPosition().first + radius) <= abs(platPos.first))
-        {
+        cout<<"Player position before bounce: " <<player.getPosition().first << " " << player.getPosition().second<< "\n";;
+         if (playerRight >= platformLeft && playerLeft < platformLeft) {
+        // if (abs(player.getPosition().first + radius) <= abs(platPos.first)){
+        
             // Ball hits left side of platform
             player.setPosition({platformLeft - radius - 0.001, pos.second}); // 🛠 Move slightly more left
-            vel.first = -abs(vel.first) * 0.7;
-            player.setVelocity(vel);
-            cout << "[Resolve] Bounced off left wall\n";
-            // Ball hits left side of platform
-            player.setPosition({platformLeft - radius - 0.001, pos.second}); // 🛠 Move slightly more left
+            cout<<"after bounce"<<player.getPosition().first  << " " << player.getPosition().second<< "\n";
             vel.first = -abs(vel.first) * 0.7;
             player.setVelocity(vel);
             cout << "[Resolve] Bounced off left wall\n";
         }
-        // else if (playerLeft <= platformRight && playerRight > platformRight) {
-        else if (abs(player.getPosition().first + radius) <= abs(platPos.first + platLength))
-        {
+        else if (playerLeft <= platformRight && playerRight > platformRight) {
+        // else if (abs(player.getPosition().first + radius) <= abs(platPos.first + platLength)){
+        
             // Ball hits right side of platform
             player.setPosition({platformRight + radius + 0.001, pos.second}); // 🛠 Move slightly more right
+            cout<<"after bounce"<<player.getPosition().first  << " " << player.getPosition().second<< "\n";
             vel.first = abs(vel.first) * 0.7;
             player.setVelocity(vel);
             cout << "[Resolve] Bounced off right wall\n";
