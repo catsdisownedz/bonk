@@ -1,61 +1,93 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 project(BonkServer)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Silence deprecated OpenGL warnings on macOS
+# Platform-specific configuration
 if(APPLE)
-  add_definitions(-DGL_SILENCE_DEPRECATION)
+    # macOS requires OpenGL framework
+    find_library(OPENGL_LIBRARY OpenGL)
+    find_library(GLUT_LIBRARY GLUT)
+    target_link_libraries(bonk_server PRIVATE
+        ${OPENGL_LIBRARY}
+        ${GLUT_LIBRARY}
+    )
+else()
+    # Linux/Windows use the standard OpenGL target
+    target_link_libraries(bonk_server PRIVATE
+        OpenGL::OpenGL
+    )
 endif()
 
-# Find Boost
-cmake_policy(SET CMP0074 NEW)
-find_package(Boost REQUIRED COMPONENTS system thread)
-include_directories(${Boost_INCLUDE_DIRS})
+# --- Dependency Management ---
+# Modern Boost configuration
+find_package(Boost 1.71 REQUIRED COMPONENTS system thread)
 
-# Find OpenSSL
+# OpenSSL configuration
 find_package(OpenSSL REQUIRED)
-include_directories(${OPENSSL_INCLUDE_DIR})
 
-# Find OpenGL
-find_package(OpenGL REQUIRED COMPONENTS OpenGL)
-include_directories(${OPENGL_INCLUDE_DIR})
+# Modern OpenGL configuration
+find_package(OpenGL REQUIRED)
 
-# Include directories
-include_directories(include)
+# --- Glad Handling ---
+# Check for glad.c existence
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/glad.c")
+  message(WARNING "glad.c not found! To generate it, run:
+    pip install glad
+    glad --profile core --api gl=4.3 --out-path src/ --generator c
+  ")
+else()
+  message(STATUS "Found glad.c in source directory")
+endif()
 
-# Add WebSocket++ (our local version)
-include_directories(include/network)
-
-# Debug message
-message(STATUS "Source files directory: ${CMAKE_SOURCE_DIR}/src")
-
-# All source files
-add_executable(bonk_server
-  src/main.cpp
-  src/network/Server.cpp
-  src/network/Client.cpp
-  src/network/NetworkManager.cpp
-  src/network/web.cpp
-  src/physics/Player.cpp
-  src/physics/Platform.cpp
-  src/physics/GameObject.cpp
-  src/physics/PhysicsEngine.cpp
-  src/core/InputManager.cpp
+# --- Executable Setup ---
+file(GLOB_RECURSE SOURCE_FILES 
+  src/*.cpp 
+  src/*.c
+  src/network/*.cpp
+  src/physics/*.cpp
+  src/core/*.cpp
   src/glad.c
 )
 
-# Link libraries
-target_link_libraries(bonk_server
-  ${Boost_LIBRARIES}
-  ${OPENSSL_LIBRARIES}
-  ${OPENGL_LIBRARIES}
+add_executable(bonk_server ${SOURCE_FILES})
+
+# --- Modern Include Directories ---
+target_include_directories(bonk_server PRIVATE
+  include
+  include/network
+  ${Boost_INCLUDE_DIRS}
+  ${OPENSSL_INCLUDE_DIR}
+  ${OPENGL_INCLUDE_DIRS}
+)
+
+# --- Modern Linking ---
+target_link_libraries(bonk_server PRIVATE
+  Boost::system
+  Boost::thread
+  OpenSSL::SSL
+  OpenSSL::Crypto
+  OpenGL::OpenGL
   pthread
 )
 
+# --- Platform-specific Linking ---
 if(APPLE)
-  find_library(CORE_FOUNDATION_FRAMEWORK CoreFoundation)
-  find_library(CORE_SERVICES_FRAMEWORK CoreServices)
-  target_link_libraries(bonk_server ${CORE_FOUNDATION_FRAMEWORK} ${CORE_SERVICES_FRAMEWORK})
+  find_library(COCOA_LIBRARY Cocoa)
+  find_library(IOKIT_LIBRARY IOKit)
+  target_link_libraries(bonk_server PRIVATE
+    ${COCOA_LIBRARY}
+    ${IOKIT_LIBRARY}
+  )
+elseif(UNIX)
+  target_link_libraries(bonk_server PRIVATE
+    X11
+    dl
+  )
+endif()
+
+# --- File Validation ---
+if(NOT SOURCE_FILES)
+  message(FATAL_ERROR "No source files found! Check your file paths.")
 endif()
