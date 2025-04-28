@@ -39,6 +39,7 @@ void PhysicsEngine::updatePhysics(GameObject &object, double deltaTime)
         Player *player = dynamic_cast<Player *>(&object);
         if (player)
         {
+            
                 currentAcceleration.second -= gravity* step;
         }
 
