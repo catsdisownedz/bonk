@@ -39,44 +39,12 @@ void PhysicsEngine::updatePhysics(GameObject &object, double deltaTime)
         Player *player = dynamic_cast<Player *>(&object);
         if (player)
         {
-            // if (player->isJumping())
-            // {
                 currentAcceleration.second -= gravity* step;
-               // player->setJumping(false);
-            //}
         }
-        //player->setJumping(false);
-        // currentAcceleration.second -= gravity;
-        // psuh back into el game object
+
         object.update(currentPosition, currentVelocity, currentMomentum, currentAcceleration);
         timeLeft -= step;
     }
-    /*pair<double, double> currentVelocity = object.getVelocity();
-    pair<double, double> currentAcceleration = object.getAcceleration();
-    pair<double, double> currentPosition = object.getPosition();
-    pair<double, double> currentMomentum = object.getMomentum();
-
-    currentVelocity.first += currentAcceleration.first * deltaTime;
-    currentVelocity.second += currentAcceleration.second * deltaTime;
-
-    currentPosition.first += currentVelocity.first * deltaTime;
-    currentPosition.second += currentVelocity.second * deltaTime;
-
-    currentMomentum.first = object.getMass() * currentVelocity.first;
-    currentMomentum.second = object.getMass() * currentVelocity.second;
-
-    // need to handle X and y acceleration
-    Player* player = dynamic_cast<Player*> (&object) ;
-    if(player){
-        if (player->isJumping()){
-            currentAcceleration.second -= gravity;
-            player->setJumping(false);
-        }
-    }
-    //currentAcceleration.second -= gravity;
-    //psuh back into el game object
-    object.update(currentPosition, currentVelocity, currentMomentum, currentAcceleration);
-    */
 }
 // f = m * a -> a = f / m
 void PhysicsEngine::applyForce(GameObject &object, double forceX, double forceY)
@@ -113,85 +81,6 @@ bool PhysicsEngine::checkCollision(GameObject &object1, GameObject &object2)
 
     return false;
 }
-// zeina's function
-/*bool PhysicsEngine::checkWallCollision(Player& player, Platform& platform) {
-    const double radius = 0.08;
-    auto pos = player.getPosition();
-    auto vel = player.getVelocity();
-    auto platPos = platform.getPosition();
-    double platWidth = platform.getWidth();
-    double platLength = platform.getLength();
-    bool isHorizontal = platform.isHorizontal();
-
-    double playerBottom = pos.second - radius;
-    double playerTop = pos.second + radius;
-    double playerLeft = pos.first - radius;
-    double playerRight = pos.first + radius;
-
-    double platformTop = platPos.second;
-    double platformBottom = platLength;
-    double platformLeft = platPos.first;
-    double platformRight = platformLeft + platLength;
-    //cout<<platformTop <<" " << platformBottom <<" " <<platformLeft << platformRight <<"\n";
-
-    if (isHorizontal) {
-        // Allow a bigger vertical margin to catch falling balls
-        bool withinHorizontal = (playerRight > platformLeft && playerLeft < platformRight);
-        bool fallingOntoPlatform = (playerBottom >= platformTop - 0.02 && playerBottom <= platformTop + 0.02 && vel.second <= -0.001);
-
-        return withinHorizontal && fallingOntoPlatform;
-    } else {
-        bool hitLeft = (playerRight >= platformLeft - 0.02 && playerLeft < platformLeft &&
-            playerTop > platformBottom && playerBottom < platformTop && vel.first > 0);
-
-        bool hitRight = (playerLeft <= platformRight + 0.02 && playerRight > platformRight &&
-            playerTop > platformBottom && playerBottom < platformTop && vel.first < 0);
-
-        return hitLeft || hitRight;
-    }
-
-}*/
-// // omar and rola's function
-// bool PhysicsEngine::checkWallCollision(Player& player, Platform& platform){
-//     //cout<<"why ded";
-//     pair<double, double> player_position = player.getPosition();
-//     pair<double, double> platform_position = platform.getPosition();
-//     //cout<<"are you ded";
-//     double closestX = min(abs(player_position.first - platform_position.first), abs(player_position.first - (platform_position.first + platform.getLength())));
-//     //double closestX = max(platform_position.first, min(player_position.first, platform_position.first + platform.getLength()));
-//     double closestY= min(abs(player_position.second - platform_position.second) , abs(player_position.second - (platform_position.second - platform.getWidth())));
-//     return ( closestX <= 0.08 || closestY <= 0.08);
-// }
-
-// chatgpt's func
-//  bool PhysicsEngine::checkWallCollision(Player& player, Platform& platform) {
-//      const double radius = 0.08;
-//      auto pos = player.getPosition();
-//      auto platPos = platform.getPosition();
-//      double platWidth = platform.getWidth();
-//      double platLength = platform.getLength();
-//      bool isHorizontal = platform.isHorizontal();
-
-//     double platformLeft = platPos.first;
-//     double platformRight = platPos.first + platLength;
-//     double platformTop = platPos.second;
-//     double platformBottom = platPos.second - platWidth;
-
-//     // Clamp player's center to platform bounds
-//     double closestX = std::max(platformLeft, std::min(pos.first, platformRight));
-//     double closestY = std::max(platformBottom, std::min(pos.second, platformTop));
-//     //double closestX = min(abs(platPos.first - platformLeft), abs(platPos.first - platformRight));
-//     //double closestY= min(abs(platPos.second - platformTop) , abs(platPos.second - platformBottom));
-
-//     // Compute distance between player's center and closest point
-//     double distanceX = pos.first - closestX;
-//     double distanceY = pos.second - closestY;
-//     double distanceSquared = distanceX * distanceX + distanceY * distanceY;
-//     if(distanceSquared <= radius * radius){
-//         cout<<"COLLISION"<<"\n";
-//     }
-//     return distanceSquared <= radius * radius;
-// }
 
 bool PhysicsEngine::checkPlayerCollision(Player &p1, Player &p2)
 {
@@ -203,16 +92,13 @@ bool PhysicsEngine::checkPlayerCollision(Player &p1, Player &p2)
     double minDistance = 0.16; // (radius1 + radius2)^2
     return distanceSquared <= minDistance * minDistance;
 }
-
+// rola and zeina's function
 bool PhysicsEngine::checkWallCollision(Player &player, Platform &platform)
 {
     const double radius = 0.08;
     auto pos = player.getPosition();
     auto platPos = platform.getPosition();
     PlatformBounds bounds = platform.getBounds();
-
-
- 
 
     // Clamp player's center to platform bounds
     double closestX = max(bounds.left, min(pos.first, bounds.right));
@@ -232,6 +118,7 @@ bool PhysicsEngine::checkWallCollision(Player &player, Platform &platform)
 
     return collision;
 }
+
 
 void PhysicsEngine::resolveCollision(GameObject &object1, GameObject &object2)
 {

@@ -45,11 +45,6 @@ void Renderer::setMap(OneVsOne& newMap) {
 void Renderer::display() {
     glClear(GL_COLOR_BUFFER_BIT);
     glLoadIdentity();
-    
-    // Draw platforms
-    // for ( auto& platform : platforms) {
-    //     platform.drawPlatform();
-    // }
 
     // Draw map
     map.draw();
@@ -57,16 +52,20 @@ void Renderer::display() {
     // Draw players
     for (auto& player : players) {
         player.display();
-        //cout<<player.getVelocity().first;
+        //cout<<"count:"<<players.size()<<"\n";
+        
+        // player's center
+        auto pos = player.getPosition();
+        glPointSize(8.0f);
+        glColor3f(1.0f, 1.0f, 0.0f);
+        glBegin(GL_POINTS);
+            glVertex2f(pos.first, pos.second);
+        glEnd();
     }
-    
-    
-    // Draw moving objects
-    // for (const auto& movingObject : movingObjects) {
-    //     movingObject.draw();
-    // }
-    glutSwapBuffers(); // to be added when zeina eats
+    glEnd();
+    glutSwapBuffers();
 }
+
 
 void Renderer::update() {
     for (auto& player : players) {
@@ -79,37 +78,15 @@ void Renderer::update() {
         for (auto& platform : map.getPlatforms()) {
             if (physicsEngine.checkCollision(player, platform)) {
                 collidedPlatform = &platform;
-                break;
+                physicsEngine.resolveCollision(player, *collidedPlatform);
             }
         }
-
-        if (collidedPlatform) {
-            physicsEngine.resolveCollision(player, *collidedPlatform);
-        }
-
-
-        // (Optional) If you have multiple players and want to check player-player collisions later:
-        // for (auto& otherPlayer : players) {
-        //     if (&otherPlayer != &player) {
-        //         if (physicsEngine.checkCollision(player, otherPlayer)) {
-        //             physicsEngine.resolveCollision(player, otherPlayer);
-        //         }
-        //     }
-        // }
     }
 
     glutPostRedisplay(); // Request to redraw the scene
 }
 
 
-/*void update(int value) {
-    ball.handleInput(inputManager); // Use keyboard input
-    ball.tick();                    // Apply physics
-    physics.updatePhysics(ball, 0.016);
-    glutPostRedisplay();           // Refresh screen
-    glutTimerFunc(16, update, 0);  // 60 FPS
-}
-*/
 
 
 

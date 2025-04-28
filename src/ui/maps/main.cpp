@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
     // renderer.addPlatform(map);
     renderer.setMap(map);
 
-    ball.setPosition({0.0, 0.17}); //initial position for the ball, and ig we need to make a loop of players and set the position keda if we are playing with two
+    ball.setPosition({0.0, 0.15}); //initial position for the ball, and ig we need to make a loop of players and set the position keda if we are playing with two
     //ball.setJumping(true);
     renderer.addPlayer(ball);
     // renderer.display();

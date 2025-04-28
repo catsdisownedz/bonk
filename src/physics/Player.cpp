@@ -81,16 +81,6 @@ void Player::setJumping(bool isJumping) {
     jumping = isJumping;
 }
 
-void Player::draw() {
-    auto pos = getPosition();
-    glColor3f(1.0, 0.2, 0.2);
-    glBegin(GL_POLYGON);
-    for (int i = 0; i < 360; i += 10) {
-        float rad = i * 3.14f / 180;
-        glVertex2f(pos.first + 0.08 * cos(rad), pos.second + 0.08 * sin(rad));
-    }
-    glEnd();
-}
 
 void Player::jump() {
     if (!jumping) {
@@ -99,12 +89,19 @@ void Player::jump() {
     }
 }
 
-void Player::display() {
+void Player::draw() {
     auto pos = getPosition();
-    glPushMatrix();
-    glTranslatef(pos.first, pos.second, 0.0);
-    draw();
-    glPopMatrix();
+    glColor3f(1.0, 0.2, 0.2);
+    glBegin(GL_POLYGON);
+      for (int i = 0; i < 360; i += 10) {
+        float rad = i * 3.14159f / 180;
+        glVertex2f(pos.first + 0.08 * cos(rad), pos.second + 0.08 * sin(rad));
+      }
+    glEnd();
+}
+
+void Player::display() {
+    draw(); 
 }
 
 void Player::tick() {
