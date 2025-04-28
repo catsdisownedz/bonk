@@ -62,7 +62,7 @@ void Renderer::display() {
             glVertex2f(pos.first, pos.second);
         glEnd();
     }
-    glEnd();
+    //glEnd();
     glutSwapBuffers();
 }
 

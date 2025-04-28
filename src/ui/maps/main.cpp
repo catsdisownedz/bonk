@@ -4,12 +4,13 @@
 #include "../../../include/core/Renderer.h"
 #include "../../../include/core/InputManager.h"
 #include "../../../include/physics/PhysicsEngine.h"
-
+#include <iostream>
 //PhysicsEngine physics;
 InputManager inputManager;
 OneVsOne map;  
 Player ball;
 Renderer renderer;
+using namespace std;
 
 void displaykoko(){
    
@@ -38,11 +39,13 @@ void update(int value) {
 
 
 int main(int argc, char** argv) {
+    
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
     glutInitWindowSize(700, 700);
     glutCreateWindow("ponk");
 
+cout << "OpenGL version: " << glGetString(GL_VERSION) << endl;
     // Set up OpenGL environment
     glClearColor(0.1, 0.8, 0.6, 0.6);// alwan el background
     glMatrixMode(GL_PROJECTION);
