@@ -2,15 +2,19 @@
 // el mfrood yeddy data le renderer for visualization
 // we ya5od physics properties mn physics engine
 #include "../../include/physics/GameObject.h"
-
-GameObject::GameObject(double x, double y)
+#include<vector>
+using namespace std;
+GameObject::GameObject(double x, double y,double r, double g, double b)
 {
+    color={r,g,b};
     position = {x, y};
     velocity = {0.0, 0.0};
     momentum = {0.0, 0.0};
     acceleration = {0.0, 0.0};
     mass = 1.0;
 }
+vector<double> GameObject::getColor() const { return color; }
+void GameObject::setColor(vector<double> newColor) { color=newColor; }
 pair<double, double> GameObject::getPosition() const { return position; }
 void GameObject::setPosition(pair<double, double> newPosition) { position = newPosition; }
 pair<double, double> GameObject::getVelocity() { return velocity; }

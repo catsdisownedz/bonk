@@ -6,7 +6,7 @@ using namespace std;
 
 class Player : public GameObject {
     public:
-        Player();
+        Player(int id);
         void updateScore(){score++;};
         int getId(){return id;};
         int returnScore(){return score;};

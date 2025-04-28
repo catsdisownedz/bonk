@@ -4,7 +4,7 @@
 using namespace std;
 
 Platform::Platform(pair<double, double> position, bool horizontal, double length, double width, vector<double> colors)
-    : GameObject(position.first, position.second),
+    : GameObject(position.first, position.second,colors[0], colors[1], colors[2]),
       horizontal(horizontal),
       length(length),
       width(width),

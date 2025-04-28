@@ -8,13 +8,16 @@ using namespace std;
 
 extern PhysicsEngine physics;
 
-Player::Player() : GameObject(0, 0) {
+Player::Player(int id) : GameObject(0, 0, 0, 0, 0) {
+    this->id = id;
     score = 0;
-    id = 0;
     jumping = false;
     isAlive = true;
     isMoving = false;
 }
+// int Player::getId() {
+//     return id;
+// }
 
 void Player::update(pair<double, double> position, pair<double, double> velocity, pair<double, double> momentum, pair<double, double> acceleration) {
     GameObject::update(position, velocity, momentum, acceleration);
@@ -40,15 +43,38 @@ void Player::handleInput(const InputManager& input) {
     const double fallBoostGrowthRate = 0.005;    // 🔵 Rate at which boost grows while holding Space
     const double maxStoredFallBoost = 0.3;       // 🔵 Maximum boost you can store
 
-    bool moveLeft = input.isPressed('a');
-    bool moveRight = input.isPressed('d');
-    bool jumpPressed = input.isPressed('w');
-    bool spacePressed = input.isPressed(' ');
+    bool moveLeft ;
+    bool moveRight;
+    bool jumpPressed;
+    bool spacePressed;
 
-    bool moveAndJumpLeft = input.isCombo('a', 'w');
-    bool moveAndJumpRight = input.isCombo('d', 'w');
-    bool moveJumpSpaceLeft = input.isTripleCombo('a', 'w', ' ');
-    bool moveJumpSpaceRight = input.isTripleCombo('d', 'w', ' ');
+    bool moveAndJumpLeft;
+    bool moveAndJumpRight;
+    bool moveJumpSpaceLeft;
+    bool moveJumpSpaceRight;
+
+    if(getId() == 1){
+        moveLeft = input.isPressed('a');
+        moveRight = input.isPressed('d');
+        jumpPressed = input.isPressed('w');
+        spacePressed = input.isPressed(' ');
+
+        moveAndJumpLeft = input.isCombo('a', 'w');
+        moveAndJumpRight = input.isCombo('d', 'w');
+        moveJumpSpaceLeft = input.isTripleCombo('a', 'w', ' ');
+        moveJumpSpaceRight = input.isTripleCombo('d', 'w', ' ');
+    }
+    else if(getId() == 2){
+        moveLeft = input.isSpecialPressed(GLUT_KEY_LEFT);  // Left Arrow
+        moveRight = input.isSpecialPressed(GLUT_KEY_RIGHT); // Right Arrow
+        jumpPressed = input.isSpecialPressed(GLUT_KEY_UP);  // Up Arrow (jump)
+        spacePressed = input.isSpecialPressed(GLUT_KEY_DOWN);  // Space for jump
+
+        moveAndJumpLeft = input.isSpecialCombo(GLUT_KEY_LEFT, GLUT_KEY_UP); // Left Arrow + Up Arrow
+        moveAndJumpRight = input.isSpecialCombo(GLUT_KEY_RIGHT, GLUT_KEY_UP); // Right Arrow + Up Arrow
+        moveJumpSpaceLeft = input.isSpecialTripleCombo(GLUT_KEY_LEFT, GLUT_KEY_UP, GLUT_KEY_DOWN); // Left Arrow + Up Arrow + Space
+        moveJumpSpaceRight = input.isSpecialTripleCombo(GLUT_KEY_RIGHT, GLUT_KEY_UP, GLUT_KEY_DOWN); // Right Arrow + Up Arrow + Space
+    }
 
     // --- Movement (X axis) ---
     if (moveLeft) {
@@ -182,7 +208,8 @@ void Player::jump() {
 
 void Player::draw() {
     auto pos = getPosition();
-    glColor3f(1.0, 0.2, 0.2);
+    auto color=getColor();
+    glColor3f(color[0], color[1], color[2]);
     glBegin(GL_POLYGON);
     for (int i = 0; i < 360; i += 10) {
         float rad = i * 3.14159f / 180;

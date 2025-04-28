@@ -11,7 +11,8 @@
 InputManager inputManager;
 Renderer renderer;
 OneVsOne map;  
-Player ball;
+Player ball1(1);
+Player ball2(2);
 
 using namespace std;
 
@@ -25,6 +26,14 @@ void keyDown(unsigned char key, int x, int y) {
 
 void keyUp(unsigned char key, int x, int y) {
     inputManager.keyUp(key);
+}
+
+void specialKeyboard(int key, int x, int y) {
+    inputManager.specialKeyDown(key);
+}
+
+void specialKeyboardUp(int key, int x, int y) {
+    inputManager.specialKeyUp(key);
 }
 
 void update(int value) {
@@ -52,14 +61,21 @@ int main(int argc, char** argv) {
     // renderer.addPlatform(map);
     renderer.setMap(&map);
 
-    ball.setPosition({0.0, 0.15}); //initial position for the ball, and ig we need to make a loop of players and set the position keda if we are playing with two
+    ball1.setPosition({0.0, 0.15}); //initial position for the ball, and ig we need to make a loop of players and set the position keda if we are playing with two
+    ball1.setColor({1.0, 0.0, 0});
+    ball2.setPosition({-0.5, 0.15});
+    ball2.setColor({1.0, 0.647, 0.0});
+
 
     //ball.setJumping(true);
-    renderer.addPlayer(ball);
+    renderer.addPlayer(ball1);
+    renderer.addPlayer(ball2);
     // renderer.display();
     glutDisplayFunc(displaykoko); 
     glutKeyboardFunc(keyDown);
     glutKeyboardUpFunc(keyUp);
+    glutSpecialFunc(specialKeyboard);
+    glutSpecialUpFunc(specialKeyboardUp);
     glutTimerFunc(0, update, 0);
 
  

@@ -1,14 +1,17 @@
 #pragma once
 #include <utility>
+#include <vector>
 
 using namespace std;
 
 class GameObject{
 public:
-    GameObject(double x, double y);
+    GameObject(double x, double y,double r, double g, double b);
     virtual ~GameObject() {};
     void drawPlatform();
     void drawPlayers();
+    vector<double> getColor() const;
+    void setColor(vector<double> newColor);
     pair<double, double> getPosition() const;
     void setPosition(pair<double, double> newPosition);
     pair<double, double> getVelocity();
@@ -23,6 +26,7 @@ public:
     void addAcceleration(double xAcceleration, double yAcceleration);
 
 private:
+    vector<double> color;
     pair<double, double> position;
     pair<double, double> velocity;
     pair<double, double> momentum;
