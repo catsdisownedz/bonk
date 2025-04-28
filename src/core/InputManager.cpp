@@ -21,3 +21,7 @@ bool InputManager::isCombo(unsigned char key1, unsigned char key2) const {
     return isPressed(key1) && isPressed(key2);
 }
 
+bool InputManager::isTripleCombo(unsigned char key1, unsigned char key2, unsigned char key3) const {
+    return isPressed(key1) && isPressed(key2) && isPressed(key3);
+}
+

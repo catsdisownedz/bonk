@@ -35,19 +35,22 @@ void Renderer::removePlayer(int id) {
 }
 
 //need to edit this later
-void Renderer::setMap(OneVsOne& newMap) {
+void Renderer::setMap(Map* newMap) {
     map = newMap;
-    addPlatform(map.getPlatforms()[0]);
-    addPlatform(map.getPlatforms()[1]);
-
+    for (auto& platform : map->getPlatforms()) {
+        addPlatform(platform);
+    }
 }
+
 
 void Renderer::display() {
     glClear(GL_COLOR_BUFFER_BIT);
     glLoadIdentity();
 
     // Draw map
-    map.draw();
+    if (map) {
+    map->draw();
+    }
 
     // Draw players
     for (auto& player : players) {
@@ -69,24 +72,23 @@ void Renderer::display() {
 
 void Renderer::update() {
     for (auto& player : players) {
-        //cout<< player.getAcceleration().second<<" "<<player.getVelocity().second<<"\n";
-        player.handleInput(inputManager);         // Read player input
-        physicsEngine.updatePhysics(player, 0.016); // Apply physics (gravity, velocity)
+        player.handleInput(inputManager);
+        physicsEngine.updatePhysics(player, 0.016);
 
         Platform* collidedPlatform = nullptr;
 
-        for (auto& platform : map.getPlatforms()) {
-            if (physicsEngine.checkCollision(player, platform)) {
-                collidedPlatform = &platform;
-                physicsEngine.resolveCollision(player, *collidedPlatform);
+        if (map) {
+            for (auto& platform : map->getPlatforms()) {
+                if (physicsEngine.checkCollision(player, platform)) {
+                    collidedPlatform = &platform;
+                    physicsEngine.resolveCollision(player, *collidedPlatform);
+                }
             }
         }
-    }
+    } 
 
-    glutPostRedisplay(); // Request to redraw the scene
-}
-
-
+    glutPostRedisplay(); 
+} 
 
 
 

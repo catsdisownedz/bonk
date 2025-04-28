@@ -36,12 +36,16 @@ void PhysicsEngine::updatePhysics(GameObject &object, double deltaTime)
         currentMomentum.second = object.getMass() * currentVelocity.second;
 
         // need to handle X and y acceleration
-        Player *player = dynamic_cast<Player *>(&object);
-        if (player)
-        {
-            
-                currentAcceleration.second -= gravity* step;
+       Player *player = dynamic_cast<Player *>(&object);
+        if (player) {
+            if (player->isJumping()) {
+                currentAcceleration.second -= gravity * step; // Only apply gravity if still jumping
+            } else {
+                currentAcceleration.second = 0; // No more vertical acceleration
+                currentVelocity.second = 0;     // No more vertical velocity
+            }
         }
+
 
         object.update(currentPosition, currentVelocity, currentMomentum, currentAcceleration);
         timeLeft -= step;
@@ -175,9 +179,7 @@ void PhysicsEngine::resolvePlayerCollision(Player &p1, Player &p2)
     p2.setVelocity({v2.first + dv2n * x_Normal, v2.second + dv2n * y_Normal});
 }
 
-void PhysicsEngine::resolveWallCollision(Player &player, Platform &platform)
-{
-    // cout <<"collision!";
+void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
     const double radius = 0.08;
     auto pos = player.getPosition();
     auto vel = player.getVelocity();
@@ -185,46 +187,41 @@ void PhysicsEngine::resolveWallCollision(Player &player, Platform &platform)
     
     PlatformBounds bounds = platform.getBounds();
 
-    double playerBottom = pos.second - radius;
-    double playerTop = pos.second + radius;
-    double playerLeft = pos.first - radius;
-    double playerRight = pos.first + radius;
-
     if (platform.isHorizontal()) {
-         // If falling down (vel.second < 0), bounce upward
         if (vel.second < 0.0) {
-            vel.second = -vel.second * 0.5; // Bounce up with reduced speed (50%)
-     }
-
-    // If bounce is too small, stop completely
-         if (abs(vel.second) < 0.01) {
-            vel.second = 0;
-            player.setJumping(false); // Landed
-             acc.second = 0;
-             player.setAcceleration(acc);
+            vel.second = -vel.second * 0.8 + player.isFallingBoosted() * player.storedFallBoost;
+             if (abs(vel.second) < 0.05) {  //If vertical speed is tiny after bounce
+                vel.second = 0.0;          // Stop fully to prevent sinking
+            }   
+            player.enableBoostJump();
+            player.resetFallBoost(); // reset after applying
         }
 
-       player.setVelocity(vel);
+        if (abs(vel.second) < 0.01 && player.isJumping()) {
+            player.setJumping(false);   // Mark as landed
+            acc.second = 0.0;           // No more vertical acceleration
+            player.setAcceleration(acc);
+        }
 
+        player.setVelocity(vel);
         cout << "[RESOLVE] Bounced on horizontal platform\n";
-    } else {
-        double playerLeft = pos.first - radius;
-        double playerRight = pos.first + radius;
 
-        if (playerRight >= bounds.left && playerLeft < bounds.left) {
+    } else {
+        if (vel.first > 0.0) {
             player.setPosition({bounds.left - radius - 0.001, pos.second});
-            vel.first = -abs(vel.first) * 0.7;
+            vel.first = -abs(vel.first) * 0.8;
             cout << "[RESOLVE] Bounced off left wall\n";
         }
-        else if (playerLeft <= bounds.right && playerRight > bounds.right) {
+        else if (vel.first < 0.0) {
             player.setPosition({bounds.right + radius + 0.001, pos.second});
-            vel.first = abs(vel.first) * 0.7;
+            vel.first = abs(vel.first) * 0.8;
             cout << "[RESOLVE] Bounced off right wall\n";
         }
 
         player.setVelocity(vel);
     }
 }
+
 
 
 void PhysicsEngine::applyFriction(GameObject &object, double friction)

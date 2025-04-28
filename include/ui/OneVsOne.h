@@ -9,11 +9,8 @@ class OneVsOne : public Map
 {
 public:
     OneVsOne();
-    void draw();
-    vector<Platform>& getPlatforms(); //NOW WE CAN RETURN IT BY REFERENCE 
-    //virtual void display()=0;
-    //virtual void addPlatform(Platform platform)=0;
-    //void addPlayers(Player player)=0; 
+    void draw() override;
+    vector<Platform>& getPlatforms() override; 
 
 private:
     vector<Platform> platforms;

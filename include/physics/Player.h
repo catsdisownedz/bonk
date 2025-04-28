@@ -21,12 +21,18 @@ class Player : public GameObject {
         void display();
         void jump();
         void handleInput(const InputManager& input);
-    private:
+        void enableBoostJump() { canBoostJump = true; }
+        void disableBoostJump() { canBoostJump = false; }
+        void resetFallBoost() { storedFallBoost = 0.0; isBoostingFall = false; }
+        bool isFallingBoosted() const { return isBoostingFall; }
         int score;
         int id;
         bool jumping;
         bool isAlive;
         bool isMoving;
+        bool canBoostJump = false;
+        bool isBoostingFall = false;
+        double storedFallBoost = 0.0; //how much extra force to add into next bounce 
 
 };
 

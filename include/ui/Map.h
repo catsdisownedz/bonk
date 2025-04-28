@@ -1,10 +1,10 @@
 #pragma once
+#include "../physics/Platform.h"
+#include <vector>
 
-class Map{
-    public:
-    void draw() ;        // Pure virtual: each map draws its layout
-    void display();        // Pure virtual: each map loads its own layout
-    // virtual ~Map() {}               // Virtual destructor (important for cleanup)
-
+class Map {
+public:
+    virtual void draw() = 0; 
+    virtual std::vector<Platform>& getPlatforms() = 0;
+    virtual ~Map() {}; 
 };
-

@@ -30,52 +30,126 @@ bool Player::getIsMoving() {
 
 void Player::handleInput(const InputManager& input) {
     auto vel = getVelocity();
-    const double maxSpeed = 0.2;
-    const double accel = 0.01;
-    const double jumpVelocity = 0.25;
+    
+    const double maxSpeed = 0.4;
+    const double moveAccel = 0.02;
+    const double baseJumpVelocity = 0.25;
+    const double jumpBoost = 0.2;
+    const double fallBoostForce = -0.25;
+    const double controlledJumpFactor = 0.85;
 
     bool moveLeft = input.isPressed('a');
     bool moveRight = input.isPressed('d');
     bool jumpPressed = input.isPressed('w');
+    bool spacePressed = input.isPressed(' ');
+
     bool moveAndJumpLeft = input.isCombo('a', 'w');
     bool moveAndJumpRight = input.isCombo('d', 'w');
+    bool moveJumpSpaceLeft = input.isTripleCombo('a', 'w', ' ');
+    bool moveJumpSpaceRight = input.isTripleCombo('d', 'w', ' ');
 
-    // Movement handling
+    // --- Movement ---
     if (moveLeft) {
-        vel.first = max(vel.first - accel, -maxSpeed);
-    } 
+        vel.first = max(vel.first - moveAccel, -maxSpeed);
+    }
     if (moveRight) {
-        vel.first = min(vel.first + accel, maxSpeed);
+        vel.first = min(vel.first + moveAccel, maxSpeed);
     }
     if (!moveLeft && !moveRight) {
-        // Gradual slow down when no horizontal movement key pressed
+    if (isJumping()) {
+        //In air, don't slow down X completely (preserve momentum)
+        vel.first *= 0.99;  // VERY light air resistance
+    } else {
+        // On ground: strong friction
         vel.first *= 0.9;
-        if (abs(vel.first) < 0.001) vel.first = 0;
     }
 
-    // Jumping handling
-    if (jumpPressed && !jumping) {
-        vel.second = jumpVelocity;
-        jumping = true;
-        cout << "[Input] Jump pressed (W)\n";
+    if (abs(vel.first) < 0.001) vel.first = 0;
+}
+
+    // --- Handle Jump Combos ---
+
+    if (moveJumpSpaceLeft) { // A+W+Space
+        if (!jumping) {
+            vel.first = max(vel.first - moveAccel, -maxSpeed);
+            vel.second = baseJumpVelocity * 0.8; // Controlled diagonal jump
+            jumping = true;
+            resetFallBoost();
+            cout << "[Triple Combo] AW+Space - Controlled Top Left Jump\n";
+        }
+    }
+    else if (moveJumpSpaceRight) { // D+W+Space
+        if (!jumping) {
+            vel.first = min(vel.first + moveAccel, maxSpeed);
+            vel.second = baseJumpVelocity * 0.8;
+            jumping = true;
+            resetFallBoost();
+            cout << "[Triple Combo] WD+Space - Controlled Top Right Jump\n";
+        }
+    }
+    else if (moveAndJumpLeft) { // A+W
+        if (!jumping) {
+            vel.first = max(vel.first - moveAccel, -maxSpeed);
+            vel.second = baseJumpVelocity;
+            jumping = true;
+            resetFallBoost();
+            cout << "[Combo] AW - Top Left Jump\n";
+        } 
+        else if (canBoostJump) {
+            vel.second += jumpBoost + storedFallBoost;
+            canBoostJump = false;
+            storedFallBoost = 0.0;
+            cout << "[Combo Boost] AW + W after bounce\n";
+        }
+    }
+    else if (moveAndJumpRight) { // D+W
+        if (!jumping) {
+            vel.first = min(vel.first + moveAccel, maxSpeed);
+            vel.second = baseJumpVelocity;
+            jumping = true;
+            resetFallBoost();
+            cout << "[Combo] WD - Top Right Jump\n";
+        }
+        else if (canBoostJump) {
+            vel.second += jumpBoost + storedFallBoost;
+            canBoostJump = false;
+            storedFallBoost = 0.0;
+            cout << "[Combo Boost] WD + W after bounce\n";
+        }
+    }
+    else if (jumpPressed) { // W only
+        if (!jumping) {
+            vel.second = baseJumpVelocity;
+            jumping = true;
+            resetFallBoost();
+            cout << "[Input] W Jump\n";
+        }
+        else if (canBoostJump) {
+            vel.second += jumpBoost + storedFallBoost;
+            canBoostJump = false;
+            storedFallBoost = 0.0;
+            cout << "[Input] W after bounce + stored momentum\n";
+        }
     }
 
-    // Diagonal jump combos
-    if (moveAndJumpLeft && !jumping) {
-        vel.first = max(vel.first - accel, -maxSpeed);
-        vel.second = jumpVelocity;
-        jumping = true;
-        cout << "[Combo] aw - Top Left Jump\n";
-    } 
-    if (moveAndJumpRight && !jumping) {
-        vel.first = min(vel.first + accel, maxSpeed);
-        vel.second = jumpVelocity;
-        jumping = true;
-        cout << "[Combo] wd - Top Right Jump\n";
-    } 
+    // --- Handle Space separately (fall control) ---
+    if (spacePressed) {
+        if (vel.second < 0.0 || (vel.second < 0.1 && (vel.first > 0.05 || vel.first < -0.05))) {
+            // Falling vertically or diagonally
+            vel.second += fallBoostForce;
+            storedFallBoost += abs(fallBoostForce * 1.2); // Store boost
+            isBoostingFall = true;
+            cout << "[Space] Boosted Fall\n";
+        } 
+        else if (vel.second > 0.0) {
+            vel.second *= controlledJumpFactor;
+            cout << "[Space] Controlled Upward Jump\n";
+        }
+    }
 
     setVelocity(vel);
 }
+
 
 void Player::setJumping(bool isJumping) {
     jumping = isJumping;

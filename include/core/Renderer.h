@@ -1,7 +1,7 @@
 #pragma once
 #include "../physics/GameObject.h"
 #include "../physics/Player.h"
-#include "../ui/OneVsOne.h"
+#include "../ui/Map.h"
 #include <vector>
 #include <memory>
 
@@ -15,12 +15,12 @@ class Renderer {
         void addPlatform(GameObject platform);
         void addMovingObject(const GameObject& movingObject);
         void removePlayer(int id);
-        void setMap(OneVsOne& newMap);
+        void setMap(Map* newMap);
         void update();
 
     private:
         vector<Player> players;
         vector<GameObject> platforms;
         vector<GameObject> movingObjects;
-        OneVsOne map;
+        Map* map;
 };
