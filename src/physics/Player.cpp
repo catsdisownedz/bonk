@@ -30,13 +30,15 @@ bool Player::getIsMoving() {
 
 void Player::handleInput(const InputManager& input) {
     auto vel = getVelocity();
-    
-    const double maxSpeed = 0.4;
-    const double moveAccel = 0.02;
-    const double baseJumpVelocity = 0.25;
-    const double jumpBoost = 0.2;
-    const double fallBoostForce = -0.25;
-    const double controlledJumpFactor = 0.85;
+    const double maxSpeed = 0.4;               // Horizontal max speed
+    const double moveAccel = 0.02;              // Horizontal acceleration
+    const double baseJumpVelocity = 0.25;       // Normal jump power
+    const double jumpBoost = 0.15;              // 🔵 Boost after bounce (smaller now)
+    const double fallBoostForce = -0.12;        // 🔵 Force applied when pressing Space falling
+    const double controlledJumpFactor = 0.85;   // 🔵 Shrink vertical speed when holding Space going up
+    const double maxFallSpeed = -0.8;            // 🔵 Maximum allowed fall speed
+    const double fallBoostGrowthRate = 0.005;    // 🔵 Rate at which boost grows while holding Space
+    const double maxStoredFallBoost = 0.3;       // 🔵 Maximum boost you can store
 
     bool moveLeft = input.isPressed('a');
     bool moveRight = input.isPressed('d');
@@ -48,7 +50,7 @@ void Player::handleInput(const InputManager& input) {
     bool moveJumpSpaceLeft = input.isTripleCombo('a', 'w', ' ');
     bool moveJumpSpaceRight = input.isTripleCombo('d', 'w', ' ');
 
-    // --- Movement ---
+    // --- Movement (X axis) ---
     if (moveLeft) {
         vel.first = max(vel.first - moveAccel, -maxSpeed);
     }
@@ -56,23 +58,21 @@ void Player::handleInput(const InputManager& input) {
         vel.first = min(vel.first + moveAccel, maxSpeed);
     }
     if (!moveLeft && !moveRight) {
-    if (isJumping()) {
-        //In air, don't slow down X completely (preserve momentum)
-        vel.first *= 0.99;  // VERY light air resistance
-    } else {
-        // On ground: strong friction
-        vel.first *= 0.9;
+        if (isJumping()) {
+            vel.first *= 0.99;  // Light air resistance
+        } else {
+            vel.first *= 0.9;   // Strong ground friction
+        }
+        if (abs(vel.first) < 0.001) vel.first = 0;
     }
-
-    if (abs(vel.first) < 0.001) vel.first = 0;
-}
 
     // --- Handle Jump Combos ---
 
     if (moveJumpSpaceLeft) { // A+W+Space
         if (!jumping) {
             vel.first = max(vel.first - moveAccel, -maxSpeed);
-            vel.second = baseJumpVelocity * 0.8; // Controlled diagonal jump
+            vel.second = baseJumpVelocity * 0.8; // 🔵 Controlled diagonal jump
+            vel.second -= 0.05;                  // 🔵 Heavier downward feeling
             jumping = true;
             resetFallBoost();
             cout << "[Triple Combo] AW+Space - Controlled Top Left Jump\n";
@@ -82,6 +82,7 @@ void Player::handleInput(const InputManager& input) {
         if (!jumping) {
             vel.first = min(vel.first + moveAccel, maxSpeed);
             vel.second = baseJumpVelocity * 0.8;
+            vel.second -= 0.05;
             jumping = true;
             resetFallBoost();
             cout << "[Triple Combo] WD+Space - Controlled Top Right Jump\n";
@@ -117,14 +118,24 @@ void Player::handleInput(const InputManager& input) {
             cout << "[Combo Boost] WD + W after bounce\n";
         }
     }
-    else if (jumpPressed) { // W only
+    else if (jumpPressed && spacePressed) { // 🔥 W + Space together
         if (!jumping) {
+            vel.second = baseJumpVelocity * 0.8; // 🔵 Controlled small vertical jump
+            vel.second -= 0.05;                  // 🔵 Make it heavier
+            jumping = true;
+            resetFallBoost();
+            cout << "[Combo] W+Space - Controlled Upward Jump\n";
+        }
+    }
+    else if (jumpPressed) { // W only
+        if (!jumping || landedRecently) {  // Allow boosting if just landed
             vel.second = baseJumpVelocity;
             jumping = true;
             resetFallBoost();
+            landedRecently = false;
             cout << "[Input] W Jump\n";
         }
-        else if (canBoostJump) {
+        else if (canBoostJump) { // Bounce boost
             vel.second += jumpBoost + storedFallBoost;
             canBoostJump = false;
             storedFallBoost = 0.0;
@@ -137,7 +148,15 @@ void Player::handleInput(const InputManager& input) {
         if (vel.second < 0.0 || (vel.second < 0.1 && (vel.first > 0.05 || vel.first < -0.05))) {
             // Falling vertically or diagonally
             vel.second += fallBoostForce;
-            storedFallBoost += abs(fallBoostForce * 1.2); // Store boost
+             if (vel.second > -0.15) { // 🔵 Always have minimum fall speed after pressing space
+                vel.second = -0.15;
+            }
+            
+            storedFallBoost += fallBoostGrowthRate; // 🔵 Gradual fall boost storage
+            if (storedFallBoost > maxStoredFallBoost) {
+                storedFallBoost = maxStoredFallBoost; // 🔵 Limit maximum stored boost
+            }
+            
             isBoostingFall = true;
             cout << "[Space] Boosted Fall\n";
         } 
@@ -150,15 +169,13 @@ void Player::handleInput(const InputManager& input) {
     setVelocity(vel);
 }
 
-
 void Player::setJumping(bool isJumping) {
     jumping = isJumping;
 }
 
-
 void Player::jump() {
     if (!jumping) {
-        setVelocity({getVelocity().first, 0.25}); // Make this match jumpVelocity
+        setVelocity({getVelocity().first, 0.25}); // Match base jump velocity
         jumping = true;
     }
 }
@@ -167,10 +184,10 @@ void Player::draw() {
     auto pos = getPosition();
     glColor3f(1.0, 0.2, 0.2);
     glBegin(GL_POLYGON);
-      for (int i = 0; i < 360; i += 10) {
+    for (int i = 0; i < 360; i += 10) {
         float rad = i * 3.14159f / 180;
         glVertex2f(pos.first + 0.08 * cos(rad), pos.second + 0.08 * sin(rad));
-      }
+    }
     glEnd();
 }
 
@@ -179,5 +196,12 @@ void Player::display() {
 }
 
 void Player::tick() {
-    physics.updatePhysics(*this, 0.016); // Apply gravity, velocity, acceleration, position
+    physics.updatePhysics(*this, 0.016);
+
+    if (landedRecently) {
+        landedTimer -= 0.016;
+        if (landedTimer <= 0) {
+            landedRecently = false;
+        }
+    }
 }

@@ -73,7 +73,7 @@ void Renderer::display() {
 void Renderer::update() {
     for (auto& player : players) {
         player.handleInput(inputManager);
-        physicsEngine.updatePhysics(player, 0.016);
+        player.tick();
 
         Platform* collidedPlatform = nullptr;
 

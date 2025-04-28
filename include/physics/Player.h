@@ -33,6 +33,7 @@ class Player : public GameObject {
         bool canBoostJump = false;
         bool isBoostingFall = false;
         double storedFallBoost = 0.0; //how much extra force to add into next bounce 
-
+        double landedTimer = 0.0;
+        bool landedRecently = false;
 };
 

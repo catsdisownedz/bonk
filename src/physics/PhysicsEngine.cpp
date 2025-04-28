@@ -197,11 +197,22 @@ void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
             player.resetFallBoost(); // reset after applying
         }
 
-        if (abs(vel.second) < 0.01 && player.isJumping()) {
-            player.setJumping(false);   // Mark as landed
-            acc.second = 0.0;           // No more vertical acceleration
+        if (abs(vel.second) < 0.03) { // 🔵 Slightly more tolerant than 0.02
+            vel.second = 0.0;
+            acc.second = 0.0;
             player.setAcceleration(acc);
+
+            // 🔥 Snap the player a little upward to sit nicely on platform
+            auto pos = player.getPosition();
+            player.setPosition({pos.first, bounds.top + radius});
+
+            player.setVelocity(vel);  // Apply the zero velocity
+            player.landedRecently = true;
+            player.landedTimer = 0.1;  // Allow small time to reboost
+            cout << "[RESOLVE] Landed softly and snapped to platform\n";
         }
+
+
 
         player.setVelocity(vel);
         cout << "[RESOLVE] Bounced on horizontal platform\n";

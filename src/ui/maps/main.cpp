@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
     glutInitWindowSize(700, 700);
     glutCreateWindow("ponk");
 
-    glClearColor(0.1, 0.8, 0.6, 0.6);// alwan el background
+    glClearColor(0.1, 0.8, 0.6, 0.6);// alwaan el background
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(-1, 1, -1, 1);
