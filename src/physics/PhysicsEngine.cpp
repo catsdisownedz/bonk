@@ -149,6 +149,8 @@ void PhysicsEngine::resolveCollision(GameObject &object1, GameObject &object2)
 void PhysicsEngine::resolvePlayerCollision(Player &p1, Player &p2)
 {
     // Elastic collision
+//    / cout<<"[RESOLVE] Resolving player-player collision\n";
+    double radius = 0.08;
     pair<double, double> delta = {
         p2.getPosition().first - p1.getPosition().first,
         p2.getPosition().second - p1.getPosition().second};
@@ -177,6 +179,22 @@ void PhysicsEngine::resolvePlayerCollision(Player &p1, Player &p2)
 
     p1.setVelocity({v1.first + dv1n * x_Normal, v1.second + dv1n * y_Normal});
     p2.setVelocity({v2.first + dv2n * x_Normal, v2.second + dv2n * y_Normal});
+
+    double overlap = (radius + radius) - distance;
+    if (overlap > 0) {
+        double correctionFactor = 0.5; // move both players equally
+        double correctionX = x_Normal * overlap * correctionFactor;
+        double correctionY = y_Normal * overlap * correctionFactor;
+
+        p1.setPosition({
+            p1.getPosition().first - correctionX,
+            p1.getPosition().second - correctionY
+        });
+        p2.setPosition({
+            p2.getPosition().first + correctionX,
+            p2.getPosition().second + correctionY
+        });
+    }
 }
 
 void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {

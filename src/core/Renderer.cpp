@@ -85,6 +85,14 @@ void Renderer::update() {
                 }
             }
         }
+
+        for(auto& otherPlayer : players){
+            if(otherPlayer.getId() != player.getId()){
+                if(physicsEngine.checkCollision(player, otherPlayer)){
+                    physicsEngine.resolveCollision(player, otherPlayer);
+                }
+            }
+        }
     } 
 
     glutPostRedisplay(); 
