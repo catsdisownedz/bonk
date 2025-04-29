@@ -18,6 +18,7 @@ class Player : public GameObject {
         void tick();
         bool getIsMoving();
         void draw();
+        void drawHalo();
         void display();
         void jump();
         void handleInput(const InputManager& input);
@@ -35,5 +36,6 @@ class Player : public GameObject {
         double storedFallBoost = 0.0; //how much extra force to add into next bounce 
         double landedTimer = 0.0;
         bool landedRecently = false;
+        bool isSpaceBarPressed = false; // Track if space bar is pressed to draw halo
 };
 

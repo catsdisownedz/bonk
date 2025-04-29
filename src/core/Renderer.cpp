@@ -54,6 +54,10 @@ void Renderer::display() {
 
     // Draw players
     for (auto& player : players) {
+        if(player.isSpaceBarPressed){
+            player.drawHalo();
+            player.isSpaceBarPressed=false;
+        }
         player.display();
         //cout<<"count:"<<players.size()<<"\n";
         
@@ -74,6 +78,8 @@ void Renderer::update() {
     for (auto& player : players) {
         player.handleInput(inputManager);
         player.tick();
+
+        
 
         Platform* collidedPlatform = nullptr;
 

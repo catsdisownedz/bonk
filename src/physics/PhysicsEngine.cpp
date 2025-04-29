@@ -181,7 +181,7 @@ void PhysicsEngine::resolvePlayerCollision(Player &p1, Player &p2)
     p2.setVelocity({v2.first + dv2n * x_Normal, v2.second + dv2n * y_Normal});
 
     double overlap = (radius + radius) - distance;
-    if (overlap > 0) {
+    if (overlap > 0) {// omg there is an overlap
         double correctionFactor = 0.5; // move both players equally
         double correctionX = x_Normal * overlap * correctionFactor;
         double correctionY = y_Normal * overlap * correctionFactor;

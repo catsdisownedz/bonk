@@ -171,6 +171,7 @@ void Player::handleInput(const InputManager& input) {
 
     // --- Handle Space separately (fall control) ---
     if (spacePressed) {
+        isSpaceBarPressed = true; 
         if (vel.second < 0.0 || (vel.second < 0.1 && (vel.first > 0.05 || vel.first < -0.05))) {
             // Falling vertically or diagonally
             vel.second += fallBoostForce;
@@ -206,6 +207,20 @@ void Player::jump() {
     }
 }
 
+void Player::drawHalo(){
+    auto pos = getPosition(); 
+    float ballRadius = 0.08f; 
+    float haloRadius = ballRadius + 0.01f; 
+
+    glColor3f(1.0f, 1.0f, 1.0f); 
+    glBegin(GL_POLYGON);
+    for (int i = 0; i < 360; i += 10) {
+        float rad = i * 3.14159f / 180; 
+        glVertex2f(pos.first + haloRadius * cos(rad), pos.second + haloRadius * sin(rad));
+    }
+    glEnd();
+
+}
 void Player::draw() {
     auto pos = getPosition();
     auto color=getColor();
@@ -216,6 +231,7 @@ void Player::draw() {
         glVertex2f(pos.first + 0.08 * cos(rad), pos.second + 0.08 * sin(rad));
     }
     glEnd();
+
 }
 
 void Player::display() {
