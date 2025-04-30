@@ -1,6 +1,7 @@
 #include <GL/glut.h>
 #include "../../../include/ui/Map.h"
 #include "../../../include/ui/OneVsOne.h"
+#include "../../../include/ui/GangGrounds.h"
 #include "../../../include/physics/Player.h"
 #include "../../../include/core/Renderer.h"
 #include "../../../include/core/InputManager.h"
@@ -11,6 +12,7 @@
 InputManager inputManager;
 Renderer renderer;
 OneVsOne map;  
+GangGrounds gangGrounds;
 Player ball1(1);
 Player ball2(2);
 
@@ -51,7 +53,7 @@ int main(int argc, char** argv) {
     
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
-    glutInitWindowSize(700, 700);
+    glutInitWindowSize(850, 800);
     glutCreateWindow("ponk");
 
     glClearColor(0.1, 0.8, 0.6, 0.6);// alwaan el background
@@ -59,7 +61,7 @@ int main(int argc, char** argv) {
     glLoadIdentity();
     gluOrtho2D(-1, 1, -1, 1);
     // renderer.addPlatform(map);
-    renderer.setMap(&map);
+    renderer.setMap(&gangGrounds);
 
     ball1.setPosition({0.0, 0.15}); //initial position for the ball, and ig we need to make a loop of players and set the position keda if we are playing with two
     ball1.setColor({1.0, 0.0, 0});
