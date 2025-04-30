@@ -5,6 +5,7 @@
 class GameObject; 
 class Player;
 class Platform;
+class Bouncy;
 
 
 class PhysicsEngine {
@@ -21,8 +22,8 @@ class PhysicsEngine {
         //bool checkPlayerCollision(Player& player1, Player& player2);
         bool checkWallCollision(Player& player, Platform& platform);
         bool checkPlayerCollision(Player& p1, Player& p2);
-    
-        
+        bool checkBouncyCollision(Player &player , Bouncy &bouncy);
+        void resolveBouncyCollision(Player &player , Bouncy &bouncy);
 
     private:
         const double gravity = 1;

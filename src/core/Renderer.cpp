@@ -102,9 +102,8 @@ void Renderer::update() {
             for(auto& bouncy : map->getBouncies()){
                 if(physicsEngine.checkCollision(player,bouncy)){
                     collidedBouncy=&bouncy;
-                    //resolve
+                    physicsEngine.resolveCollision(player, *collidedBouncy);
                 }
-
 
             }
 

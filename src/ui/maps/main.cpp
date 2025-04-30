@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
 
     ball1.setPosition({0.0, 0.15}); //initial position for the ball, and ig we need to make a loop of players and set the position keda if we are playing with two
     ball1.setColor({1.0, 0.0, 0});
-    ball2.setPosition({-0.5, 0.15});
+    ball2.setPosition({-0.5, 0.13});
     ball2.setColor({1.0, 0.647, 0.0});
 
 

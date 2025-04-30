@@ -2,6 +2,7 @@
 #include "../../include/physics/GameObject.h"
 #include "../../include/physics/Player.h"
 #include "../../include/physics/Platform.h"
+#include "../../include/physics/Bouncy.h"
 #include <utility>
 #include <math.h>
 #include <iostream>
@@ -70,6 +71,8 @@ bool PhysicsEngine::checkCollision(GameObject &object1, GameObject &object2)
     Player *player2 = dynamic_cast<Player *>(&object2);
     Platform *platform1 = dynamic_cast<Platform *>(&object1);
     Platform *platform2 = dynamic_cast<Platform *>(&object2);
+    Bouncy *bouncy1=dynamic_cast<Bouncy *>(&object1);
+    Bouncy *bouncy2=dynamic_cast<Bouncy *>(&object2);
 
     if (player1 && player2) {
         cout << "[CHECK] Checking player-player collision\n";
@@ -84,7 +87,102 @@ bool PhysicsEngine::checkCollision(GameObject &object1, GameObject &object2)
         return checkWallCollision(*player2, *platform1);
     }
 
+    else if(player1 && bouncy2){
+        cout<<"[CHECK] Checking player-bouncy collision\n";
+        return checkBouncyCollision(*player1, *bouncy2);
+    }
+
+    else if(player2 && bouncy1){
+        cout<<"[CHECK] Checking player-bouncy collision (swapped)\n";
+        return checkBouncyCollision(*player2,*bouncy1);
+    }
+
     return false;
+}
+
+void PhysicsEngine::resolveCollision(GameObject &object1, GameObject &object2)
+{
+    Player *player1 = dynamic_cast<Player *>(&object1);
+    Player *player2 = dynamic_cast<Player *>(&object2);
+    Platform *platform1 = dynamic_cast<Platform *>(&object1);
+    Platform *platform2 = dynamic_cast<Platform *>(&object2);
+    Bouncy *bouncy1=dynamic_cast<Bouncy *>(&object1);
+    Bouncy *bouncy2=dynamic_cast<Bouncy *>(&object2);
+
+    if (player1 && player2) {
+        cout << "[RESOLVE] Resolving player-player collision\n";
+        resolvePlayerCollision(*player1, *player2);
+    }
+    else if (player1 && platform2) {
+        cout << "[RESOLVE] Resolving player-platform collision\n";
+        resolveWallCollision(*player1, *platform2);
+    }
+    else if (player2 && platform1) {
+        cout << "[RESOLVE] Resolving player-platform collision (swapped)\n";
+        resolveWallCollision(*player2, *platform1);
+    }
+
+    else if(player1 && bouncy2 ){
+        cout<<"[Resolve] Resolving player-bouncy collision\n";
+        resolveBouncyCollision(*player1 , *bouncy2);
+    }
+
+    else if(player2 && bouncy1){
+        cout<<"[Resolve] Resolving player-bouncy collision (swapped)\n";
+        resolveBouncyCollision(*player2, *bouncy1);
+    }
+}
+
+bool PhysicsEngine::checkBouncyCollision(Player &player , Bouncy &bouncy){ //pall to pall collision
+    auto playerPosition= player.getPosition();
+    auto bouncyPosition=bouncy.getPosition();
+
+    double dx= playerPosition.first- bouncyPosition.first;
+    double dy= playerPosition.second- bouncyPosition.second;
+
+    double distance = sqrt(dx*dx + dy*dy);
+
+    return distance<= 0.08+ bouncy.getRadius();
+
+}
+
+void PhysicsEngine::resolveBouncyCollision(Player &player , Bouncy &bouncy){
+    cout<<"alo meen ma3aya"<<endl;
+    auto playerPos = player.getPosition();
+    auto bouncyPos = bouncy.getPosition();
+
+    double dx = playerPos.first - bouncyPos.first;
+    double dy = playerPos.second - bouncyPos.second;
+    double distance = sqrt(dx * dx + dy * dy);
+
+    double minDistance = 0.08 + bouncy.getRadius();
+
+    // bnd7k 3la b3d 3ashan mn3mlsh /0
+    if (distance == 0.0) {
+        dx = 0.0;
+        dy = 1.0;
+        distance = 1.0;
+    }
+
+    double overlap = minDistance - distance;
+    if (overlap > 0.0) {
+        // get normal
+        double normalX = dx / distance;
+        double normalY = dy / distance;
+
+        player.setPosition({
+            playerPos.first + normalX * overlap,
+            playerPos.second + normalY * overlap
+        });
+
+        double bounceFactor=1.5; //the normal is 1 so we can play with it 
+        auto velocity = player.getVelocity();
+        player.setVelocity({
+            -velocity.first*bounceFactor,
+            -velocity.second*bounceFactor
+        });
+    }
+
 }
 
 bool PhysicsEngine::checkPlayerCollision(Player &p1, Player &p2)
@@ -125,26 +223,6 @@ bool PhysicsEngine::checkWallCollision(Player &player, Platform &platform)
 }
 
 
-void PhysicsEngine::resolveCollision(GameObject &object1, GameObject &object2)
-{
-    Player *player1 = dynamic_cast<Player *>(&object1);
-    Player *player2 = dynamic_cast<Player *>(&object2);
-    Platform *platform1 = dynamic_cast<Platform *>(&object1);
-    Platform *platform2 = dynamic_cast<Platform *>(&object2);
-
-    if (player1 && player2) {
-        cout << "[RESOLVE] Resolving player-player collision\n";
-        resolvePlayerCollision(*player1, *player2);
-    }
-    else if (player1 && platform2) {
-        cout << "[RESOLVE] Resolving player-platform collision\n";
-        resolveWallCollision(*player1, *platform2);
-    }
-    else if (player2 && platform1) {
-        cout << "[RESOLVE] Resolving player-platform collision (swapped)\n";
-        resolveWallCollision(*player2, *platform1);
-    }
-}
 
 void PhysicsEngine::resolvePlayerCollision(Player &p1, Player &p2)
 {
