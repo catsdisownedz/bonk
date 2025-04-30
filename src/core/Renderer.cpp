@@ -3,6 +3,7 @@
 #include <GL/glut.h>
 #include "../../include/core/Renderer.h"
 #include "../../include/ui/OneVsOne.h"
+#include "../../include/ui/GangGrounds.h"
 #include "../../include/physics/PhysicsEngine.h"
 #include "../../include/core/InputManager.h"
 #include <iostream>
@@ -22,6 +23,9 @@ void Renderer::addPlayer(const Player& player) {
 void Renderer::addPlatform(GameObject platform) {
     platforms.push_back(platform);
 }
+void Renderer::addBouncies(GameObject bouncy) {
+    bouncies.push_back(bouncy);
+}
 void Renderer::addMovingObject(const GameObject& movingObject) {
     movingObjects.push_back(movingObject);
 }
@@ -39,6 +43,9 @@ void Renderer::setMap(Map* newMap) {
     map = newMap;
     for (auto& platform : map->getPlatforms()) {
         addPlatform(platform);
+    }
+    for (auto& bouncy : map->getBouncies()) {
+        addBouncies(bouncy);
     }
 }
 
@@ -82,6 +89,7 @@ void Renderer::update() {
         
 
         Platform* collidedPlatform = nullptr;
+        Bouncy* collidedBouncy = nullptr;
 
         if (map) {
             for (auto& platform : map->getPlatforms()) {
@@ -90,6 +98,16 @@ void Renderer::update() {
                     physicsEngine.resolveCollision(player, *collidedPlatform);
                 }
             }
+
+            for(auto& bouncy : map->getBouncies()){
+                if(physicsEngine.checkCollision(player,bouncy)){
+                    collidedBouncy=&bouncy;
+                    //resolve
+                }
+
+
+            }
+
         }
 
         for(auto& otherPlayer : players){

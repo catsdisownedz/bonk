@@ -12,8 +12,10 @@ public:
     GangGrounds();
     void draw() override;
     vector<Platform>& getPlatforms() override; 
+    vector<Bouncy>& getBouncies();
 
 private:
     vector<Platform> platforms;
+    vector<Bouncy> bouncies;
     vector<Player> players;
 };

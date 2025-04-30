@@ -13,6 +13,7 @@ class Renderer {
         void display();
         void addPlayer(const Player& player);
         void addPlatform(GameObject platform);
+        void addBouncies(GameObject bouncy);
         void addMovingObject(const GameObject& movingObject);
         void removePlayer(int id);
         void setMap(Map* newMap);
@@ -21,6 +22,7 @@ class Renderer {
     private:
         vector<Player> players;
         vector<GameObject> platforms;
+        vector<GameObject> bouncies;
         vector<GameObject> movingObjects;
         Map* map;
 };

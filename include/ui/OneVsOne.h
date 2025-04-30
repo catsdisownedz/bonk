@@ -3,6 +3,7 @@
 #include "Map.h"
 #include "../physics/Player.h"
 #include "../physics/Platform.h"
+#include "../physics/Bouncy.h"
 #include <vector>
 
 class OneVsOne : public Map
@@ -11,6 +12,7 @@ public:
     OneVsOne();
     void draw() override;
     vector<Platform>& getPlatforms() override; 
+    vector<Bouncy>& getBouncies();
 
 private:
     vector<Platform> platforms;

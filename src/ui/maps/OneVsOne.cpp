@@ -2,6 +2,7 @@
 #include "../../../include/ui/OneVsOne.h"
 #include "../../../include/physics/Platform.h"
 #include <vector>
+#include <stdexcept>
 
 //(0.5,0.87)
 //(0.5,0.07)
@@ -21,6 +22,10 @@ OneVsOne::OneVsOne()
 vector<Platform> &OneVsOne::getPlatforms()
 {
     return platforms;
+}
+
+vector<Bouncy>& OneVsOne::getBouncies() {
+    throw runtime_error("No bouncies in OneVsOne");
 }
 
 void OneVsOne::draw()
