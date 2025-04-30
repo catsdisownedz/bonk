@@ -47,6 +47,7 @@ void Player::handleInput(const InputManager& input) {
     bool moveRight;
     bool jumpPressed;
     bool spacePressed;
+    bool onSurface;
 
     bool moveAndJumpLeft;
     bool moveAndJumpRight;
@@ -240,6 +241,7 @@ void Player::display() {
 
 void Player::tick() {
     physics.updatePhysics(*this, 0.016);
+    onSurface = false;
 
     if (landedRecently) {
         landedTimer -= 0.016;
@@ -247,4 +249,13 @@ void Player::tick() {
             landedRecently = false;
         }
     }
+}
+
+void Player::changeSurface(){
+    onSurface = true;
+    jumping = false;
+}
+
+bool Player::getOnSurface(){
+    return onSurface;
 }

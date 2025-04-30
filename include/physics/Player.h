@@ -26,6 +26,23 @@ class Player : public GameObject {
         void disableBoostJump() { canBoostJump = false; }
         void resetFallBoost() { storedFallBoost = 0.0; isBoostingFall = false; }
         bool isFallingBoosted() const { return isBoostingFall; }
+        void changeSurface();
+        bool getOnSurface();
+
+        struct PlayerBounds {
+            double left, right, top, bottom;
+        };
+    
+        PlayerBounds getBounds(double radius = 0.08) const {
+            auto pos = getPosition();
+            return {
+                pos.first - radius, // left
+                pos.first + radius, // right
+                pos.second + radius, // top
+                pos.second - radius  // bottom
+            };
+        }
+
         int score;
         int id;
         bool jumping;
@@ -37,5 +54,7 @@ class Player : public GameObject {
         double landedTimer = 0.0;
         bool landedRecently = false;
         bool isSpaceBarPressed = false; // Track if space bar is pressed to draw halo
+        bool onSurface = false;
+      
 };
 

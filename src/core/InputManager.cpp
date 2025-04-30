@@ -4,6 +4,32 @@
 
  #include "../../include/core/InputManager.h"
 
+
+ 
+void InputManager::specialKeyDown(int key) {
+    specialKeyStates[key] = true;
+}
+
+void InputManager::specialKeyUp(int key) {
+    specialKeyStates[key] = false;
+}
+
+bool InputManager::isSpecialPressed(int key) const {
+    auto it = specialKeyStates.find(key);
+    return it != specialKeyStates.end() && it->second;
+}
+
+bool InputManager::isSpecialCombo(int key1, int key2) const {
+    return isSpecialPressed(key1) && isSpecialPressed(key2);
+}
+
+bool InputManager::isSpecialTripleCombo(int key1, int key2, int key3) const {
+    return isSpecialPressed(key1) && isSpecialPressed(key2) && isSpecialPressed(key3);
+}
+
+/////////////////////////////////////////
+
+
  void InputManager::keyDown(unsigned char key){
     keyStates[key] = true;
  };
@@ -27,24 +53,3 @@ bool InputManager::isTripleCombo(unsigned char key1, unsigned char key2, unsigne
 }
 
 // for special keys like arrows bec thery are special 
-
-void InputManager::specialKeyDown(int key) {
-    specialKeyStates[key] = true;
-}
-
-void InputManager::specialKeyUp(int key) {
-    specialKeyStates[key] = false;
-}
-
-bool InputManager::isSpecialPressed(int key) const {
-    auto it = specialKeyStates.find(key);
-    return it != specialKeyStates.end() && it->second;
-}
-
-bool InputManager::isSpecialCombo(int key1, int key2) const {
-    return isSpecialPressed(key1) && isSpecialPressed(key2);
-}
-
-bool InputManager::isSpecialTripleCombo(int key1, int key2, int key3) const {
-    return isSpecialPressed(key1) && isSpecialPressed(key2) && isSpecialPressed(key3);
-}

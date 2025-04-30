@@ -7,11 +7,8 @@
 #include <math.h>
 #include <iostream>
 
-// Global physics instance used by the Player class
-PhysicsEngine physics;
 
-// need to handle collision at some point
-// x and y accelerations are not 100% done
+PhysicsEngine physics;
 using namespace std;
 
 PhysicsEngine::PhysicsEngine() {};
@@ -39,7 +36,7 @@ void PhysicsEngine::updatePhysics(GameObject &object, double deltaTime)
         // need to handle X and y acceleration
        Player *player = dynamic_cast<Player *>(&object);
         if (player) {
-            if (player->isJumping()) {
+            if (player->isJumping() || !player->getOnSurface()) {
                 currentAcceleration.second -= gravity * step; // Only apply gravity if still jumping
             } else {
                 currentAcceleration.second = 0; // No more vertical acceleration
@@ -52,6 +49,7 @@ void PhysicsEngine::updatePhysics(GameObject &object, double deltaTime)
         timeLeft -= step;
     }
 }
+
 // f = m * a -> a = f / m
 void PhysicsEngine::applyForce(GameObject &object, double forceX, double forceY)
 {
@@ -61,10 +59,7 @@ void PhysicsEngine::applyForce(GameObject &object, double forceX, double forceY)
     object.setAcceleration(acc);
 }
 
-// needs adjustments based on object type
-// if player -> pos + circle radius
-// the idea would be calling this function in the game loop, and if it returns true, game loop should call another function on the 2 objects
-// radius = 0.08
+
 bool PhysicsEngine::checkCollision(GameObject &object1, GameObject &object2)
 {
     Player *player1 = dynamic_cast<Player *>(&object1);
@@ -201,7 +196,12 @@ bool PhysicsEngine::checkWallCollision(Player &player, Platform &platform)
     const double radius = 0.08;
     auto pos = player.getPosition();
     auto platPos = platform.getPosition();
+    const double margin = 0.01;
     PlatformBounds bounds = platform.getBounds();
+    bounds.left += margin;
+    bounds.top -= margin;
+    bounds.bottom += margin;
+    bounds.right -= margin;
 
     // Clamp player's center to platform bounds
     double closestX = max(bounds.left, min(pos.first, bounds.right));
@@ -275,59 +275,150 @@ void PhysicsEngine::resolvePlayerCollision(Player &p1, Player &p2)
     }
 }
 
+// this function has some eeshoes
+
+void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
+    const double radius = 0.08;
+    const double margin = 0.01;
+    auto pos = player.getPosition();
+    auto vel = player.getVelocity();
+
+    // Get the platform bounds
+    PlatformBounds bounds = platform.getBounds();
+    bounds.left += margin;
+    bounds.right -= margin;
+    bounds.top -= margin;
+    bounds.bottom += margin;
+
+    // Find closest point on platform to player
+    double closestX = std::max(bounds.left, std::min(pos.first, bounds.right));
+    double closestY = std::max(bounds.bottom, std::min(pos.second, bounds.top));
+
+    // Calculate vector from closest point to player
+    double dx = pos.first - closestX;
+    double dy = pos.second - closestY;
+    double distSq = dx * dx + dy * dy;
+
+    // If already outside, skip
+    if (distSq == 0.0) {
+        // Perfect corner hit or center overlap — assume upward normal
+        dx = 0;
+        dy = 1;
+        distSq = 1.0;
+    }
+
+    double distance = std::sqrt(distSq);
+    double normalX = dx / distance;
+    double normalY = dy / distance;
+
+    // Project velocity onto normal
+    double v_dot_n = vel.first * normalX + vel.second * normalY;
+
+    // Only reflect if moving into wall
+    if (v_dot_n < 0) {
+        // Reflect velocity
+        double bounceFactor = 1.0; // make this >1.0 for stronger bounce
+        vel.first -= (1 + bounceFactor) * v_dot_n * normalX;
+        vel.second -= (1 + bounceFactor) * v_dot_n * normalY;
+        player.setVelocity(vel);
+    }
+
+    // Push player out of wall
+    double overlap = radius - distance;
+    if (overlap > 0) {
+        pos.first += normalX * overlap;
+        pos.second += normalY * overlap;
+        player.setPosition(pos);
+    }
+}
+
+/* this function has some other eeeshoes
 void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
     const double radius = 0.08;
     auto pos = player.getPosition();
     auto vel = player.getVelocity();
     auto acc = player.getAcceleration();
+    const double margin = 0.01;
     
     PlatformBounds bounds = platform.getBounds();
+    bounds.left += margin;
+    bounds.top -= margin;
+    bounds.bottom += margin;
+    bounds.right -= margin;
+
+
+    Player::PlayerBounds playerBounds = player.getBounds();
 
     if (platform.isHorizontal()) {
-        if (vel.second < 0.0) {
-            vel.second = -vel.second * 0.8 + player.isFallingBoosted() * player.storedFallBoost;
-             if (abs(vel.second) < 0.05) {  //If vertical speed is tiny after bounce
-                vel.second = 0.0;          // Stop fully to prevent sinking
-            }   
-            player.enableBoostJump();
-            player.resetFallBoost(); // reset after applying
-        }
+        // if (vel.second < 0.0) {
+        //     vel.second = -vel.second * 0.8 + player.isFallingBoosted() * player.storedFallBoost;
+        //      if (abs(vel.second) < 0.05) {  //If vertical speed is tiny after bounce
+        //         vel.second = 0.0;          // Stop fully to prevent sinking
+        //     }   
+        //     player.enableBoostJump();
+        //     player.resetFallBoost(); // reset after applying
+        // }
 
-        if (abs(vel.second) < 0.03) { // 🔵 Slightly more tolerant than 0.02
-            vel.second = 0.0;
+        // if (abs(vel.second) < 0.03) { // 🔵 Slightly more tolerant than 0.02
+        //     vel.second = 0.0;
+        //     acc.second = 0.0;
+        //     player.setAcceleration(acc);
+
+        //     // 🔥 Snap the player a little upward to sit nicely on platform
+        //     auto pos = player.getPosition();
+        //     player.setPosition({pos.first, bounds.top + radius});
+
+        //     player.setVelocity(vel);  // Apply the zero velocity
+        //     player.landedRecently = true;
+        //     player.landedTimer = 0.1;  // Allow small time to reboost
+        //     cout << "[RESOLVE] Landed softly and snapped to platform\n";
+        // }
+        // player.setVelocity(vel);
+        // cout << "[RESOLVE] Bounced on horizontal platform\n";
+        if (playerBounds.bottom < bounds.top &&
+            playerBounds.top > bounds.top &&
+            playerBounds.right > bounds.left &&
+            playerBounds.left < bounds.right &&
+            vel.second < 0.0)
+        {
+            // bounce upward (with optional fall boost)
+            vel.second = -vel.second * 0.8 + player.isFallingBoosted() * player.storedFallBoost;
+            if (abs(vel.second) < 0.05) {
+                vel.second = 0.0;
+            }
+
             acc.second = 0.0;
             player.setAcceleration(acc);
-
-            // 🔥 Snap the player a little upward to sit nicely on platform
-            auto pos = player.getPosition();
-            player.setPosition({pos.first, bounds.top + radius});
-
-            player.setVelocity(vel);  // Apply the zero velocity
+            player.setVelocity(vel);
+            player.enableBoostJump();
+            player.resetFallBoost();
             player.landedRecently = true;
-            player.landedTimer = 0.1;  // Allow small time to reboost
-            cout << "[RESOLVE] Landed softly and snapped to platform\n";
-        }
+            player.landedTimer = 0.1;
 
-
-
-        player.setVelocity(vel);
-        cout << "[RESOLVE] Bounced on horizontal platform\n";
+            cout << "[RESOLVE] Bounced on horizontal platform (cleaned)\n";
 
     } else {
-        if (vel.first > 0.0) {
-            player.setPosition({bounds.left - radius - 0.001, pos.second});
-            vel.first = -abs(vel.first) * 0.8;
-            cout << "[RESOLVE] Bounced off left wall\n";
-        }
-        else if (vel.first < 0.0) {
-            player.setPosition({bounds.right + radius + 0.001, pos.second});
+       // Right wall
+        if (playerBounds.left < bounds.right && playerBounds.right > bounds.right &&
+            playerBounds.top > bounds.bottom && playerBounds.bottom < bounds.top) {
+            player.setPosition({bounds.right + 0.08 + 0.001, player.getPosition().second}); // 0.08 is radius
             vel.first = abs(vel.first) * 0.8;
             cout << "[RESOLVE] Bounced off right wall\n";
         }
 
+        // Left wall
+        else if (playerBounds.right > bounds.left && playerBounds.left < bounds.left &&
+                playerBounds.top > bounds.bottom && playerBounds.bottom < bounds.top) {
+            player.setPosition({bounds.left - 0.08 - 0.001, player.getPosition().second});
+            vel.first = -abs(vel.first) * 0.8;
+            cout << "[RESOLVE] Bounced off left wall\n";
+        }
+
         player.setVelocity(vel);
+        }
     }
-}
+
+}*/
 
 
 

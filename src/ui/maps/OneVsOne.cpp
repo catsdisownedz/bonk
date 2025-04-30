@@ -25,7 +25,8 @@ vector<Platform> &OneVsOne::getPlatforms()
 }
 
 vector<Bouncy>& OneVsOne::getBouncies() {
-    throw runtime_error("No bouncies in OneVsOne");
+    static vector<Bouncy> empty;
+    return empty;
 }
 
 void OneVsOne::draw()

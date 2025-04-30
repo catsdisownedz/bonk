@@ -44,8 +44,10 @@ void Renderer::setMap(Map* newMap) {
     for (auto& platform : map->getPlatforms()) {
         addPlatform(platform);
     }
-    for (auto& bouncy : map->getBouncies()) {
-        addBouncies(bouncy);
+    if(map->getBouncies().size() > 0){
+        for (auto& bouncy : map->getBouncies()) {
+            addBouncies(bouncy);
+        }
     }
 }
 
@@ -94,17 +96,19 @@ void Renderer::update() {
         if (map) {
             for (auto& platform : map->getPlatforms()) {
                 if (physicsEngine.checkCollision(player, platform)) {
+                    player.changeSurface();
                     collidedPlatform = &platform;
                     physicsEngine.resolveCollision(player, *collidedPlatform);
                 }
             }
+            if(map->getBouncies().size() > 0){
+                for(auto& bouncy : map->getBouncies()){
+                    if(physicsEngine.checkCollision(player,bouncy)){
+                        collidedBouncy=&bouncy;
+                        physicsEngine.resolveCollision(player, *collidedBouncy);
+                    }
 
-            for(auto& bouncy : map->getBouncies()){
-                if(physicsEngine.checkCollision(player,bouncy)){
-                    collidedBouncy=&bouncy;
-                    physicsEngine.resolveCollision(player, *collidedBouncy);
                 }
-
             }
 
         }
