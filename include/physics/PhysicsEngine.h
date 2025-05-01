@@ -1,6 +1,7 @@
 #pragma once
+#include <utility>
 
-//using namespace std;
+using namespace std;
 
 class GameObject; 
 class Player;
@@ -12,8 +13,8 @@ class PhysicsEngine {
     public:
         PhysicsEngine();
         void updatePhysics(GameObject& object, double deltaTime);
-        void applyForce(GameObject& object, double forceX, double forceY);
-        void applyGravity(GameObject& object, double gravity);
+        pair<double, double> applyForce(GameObject& object, double forceX, double forceY);
+        //void applyGravity(GameObject& object, double gravity);
         bool checkCollision(GameObject& object1, GameObject& object2);
         void resolveCollision(GameObject& object1, GameObject& object2);
         void applyFriction(GameObject& object, double friction);
@@ -24,6 +25,7 @@ class PhysicsEngine {
         bool checkPlayerCollision(Player& p1, Player& p2);
         bool checkBouncyCollision(Player &player , Bouncy &bouncy);
         void resolveBouncyCollision(Player &player , Bouncy &bouncy);
+        double applyGravity(Player& player);
 
     private:
         const double gravity = 1;

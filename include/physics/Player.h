@@ -28,6 +28,7 @@ class Player : public GameObject {
         bool isFallingBoosted() const { return isBoostingFall; }
         void changeSurface();
         bool getOnSurface();
+        double getCurrentMass();
 
         struct PlayerBounds {
             double left, right, top, bottom;
@@ -55,6 +56,8 @@ class Player : public GameObject {
         bool landedRecently = false;
         bool isSpaceBarPressed = false; // Track if space bar is pressed to draw halo
         bool onSurface = false;
+        double baseMass = 1.0;
+        double currentMass = baseMass;
       
 };
 

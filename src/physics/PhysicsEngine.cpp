@@ -16,6 +16,7 @@ void PhysicsEngine::updatePhysics(GameObject &object, double deltaTime)
 {
     const double maxStep = 0.01;
     double timeLeft = deltaTime;
+    double gravity = 0.01;
     while (timeLeft > 0)
     {
         double step = min(maxStep, timeLeft);
@@ -32,13 +33,19 @@ void PhysicsEngine::updatePhysics(GameObject &object, double deltaTime)
 
         currentMomentum.first = object.getMass() * currentVelocity.first;
         currentMomentum.second = object.getMass() * currentVelocity.second;
+        currentAcceleration = {0, 0};
 
         // need to handle X and y acceleration
        Player *player = dynamic_cast<Player *>(&object);
         if (player) {
             if (player->isJumping() || !player->getOnSurface()) {
-                currentAcceleration.second -= gravity * step; // Only apply gravity if still jumping
+                cout<<player->isJumping()<<" "<<player->getOnSurface()<<"\n";
+                //currentAcceleration.second -= gravity * step; // Only apply gravity if still jumping
+                pair<double, double> gravitationalAcceleration = applyForce(*player, 0, -player->getCurrentMass() * gravity);
+                currentAcceleration.first += gravitationalAcceleration.first;
+                currentAcceleration.second += gravitationalAcceleration.second;
             } else {
+                cout<<"changed back!\n";
                 currentAcceleration.second = 0; // No more vertical acceleration
                 currentVelocity.second = 0;     // No more vertical velocity
             }
@@ -51,14 +58,17 @@ void PhysicsEngine::updatePhysics(GameObject &object, double deltaTime)
 }
 
 // f = m * a -> a = f / m
-void PhysicsEngine::applyForce(GameObject &object, double forceX, double forceY)
-{
+pair<double, double> PhysicsEngine:: applyForce(GameObject& object, double forceX, double forceY){
     auto acc = object.getAcceleration();
-    acc.first += forceX / object.getMass();
+    acc.first += forceX/object.getMass();
     acc.second += forceY / object.getMass();
-    object.setAcceleration(acc);
+    return {acc.first, acc.second};
 }
-
+//not used
+double PhysicsEngine::applyGravity(Player& player){
+    double mass = player.getCurrentMass();
+    return -0.98;
+}
 
 bool PhysicsEngine::checkCollision(GameObject &object1, GameObject &object2)
 {
@@ -275,8 +285,6 @@ void PhysicsEngine::resolvePlayerCollision(Player &p1, Player &p2)
     }
 }
 
-// this function has some eeshoes
-
 void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
     const double radius = 0.08;
     const double margin = 0.01;
@@ -330,9 +338,77 @@ void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
         pos.second += normalY * overlap;
         player.setPosition(pos);
     }
+
+    // vertical vs horizontal bit
+    // instead of using vertical and horizontal, we just compare the player's position with the platform's top position
+    if (normalY == 1 && vel.second > 0 && player.getPosition().second - radius <= bounds.top) {
+        // The player has landed on top of the platform, so stop vertical velocity:
+        vel.second = 0;
+        player.setVelocity(vel);
+        player.setJumping(false);
+        player.changeSurface();
+    }
 }
 
-/* this function has some other eeeshoes
+// this function has some eeshoes
+/*
+void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
+    const double radius = 0.08;
+    const double margin = 0.01;
+    auto pos = player.getPosition();
+    auto vel = player.getVelocity();
+
+    // Get the platform bounds
+    PlatformBounds bounds = platform.getBounds();
+    bounds.left += margin;
+    bounds.right -= margin;
+    bounds.top -= margin;
+    bounds.bottom += margin;
+
+    // Find closest point on platform to player
+    double closestX = std::max(bounds.left, std::min(pos.first, bounds.right));
+    double closestY = std::max(bounds.bottom, std::min(pos.second, bounds.top));
+
+    // Calculate vector from closest point to player
+    double dx = pos.first - closestX;
+    double dy = pos.second - closestY;
+    double distSq = dx * dx + dy * dy;
+
+    // If already outside, skip
+    if (distSq == 0.0) {
+        // Perfect corner hit or center overlap — assume upward normal
+        dx = 0;
+        dy = 1;
+        distSq = 1.0;
+    }
+
+    double distance = std::sqrt(distSq);
+    double normalX = dx / distance;
+    double normalY = dy / distance;
+
+    // Project velocity onto normal
+    double v_dot_n = vel.first * normalX + vel.second * normalY;
+
+    // Only reflect if moving into wall
+    if (v_dot_n < 0) {
+        // Reflect velocity
+        double bounceFactor = 1.0; // make this >1.0 for stronger bounce
+        vel.first -= (1 + bounceFactor) * v_dot_n * normalX;
+        vel.second -= (1 + bounceFactor) * v_dot_n * normalY;
+        player.setVelocity(vel);
+    }
+
+    // Push player out of wall
+    double overlap = radius - distance;
+    if (overlap > 0) {
+        pos.first += normalX * overlap;
+        pos.second += normalY * overlap;
+        player.setPosition(pos);
+    }
+}*/
+
+// this function has some other eeeshoes
+/*
 void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
     const double radius = 0.08;
     auto pos = player.getPosition();
@@ -418,8 +494,8 @@ void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
         }
     }
 
-}*/
-
+}
+*/
 
 
 void PhysicsEngine::applyFriction(GameObject &object, double friction)

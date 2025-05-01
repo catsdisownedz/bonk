@@ -35,7 +35,7 @@ void Player::handleInput(const InputManager& input) {
     auto vel = getVelocity();
     const double maxSpeed = 0.4;               // Horizontal max speed
     const double moveAccel = 0.02;              // Horizontal acceleration
-    const double baseJumpVelocity = 0.25;       // Normal jump power
+    const double baseJumpVelocity = 0.4;       // Normal jump power
     const double jumpBoost = 0.15;              // 🔵 Boost after bounce (smaller now)
     const double fallBoostForce = -0.12;        // 🔵 Force applied when pressing Space falling
     const double controlledJumpFactor = 0.85;   // 🔵 Shrink vertical speed when holding Space going up
@@ -172,6 +172,10 @@ void Player::handleInput(const InputManager& input) {
 
     // --- Handle Space separately (fall control) ---
     if (spacePressed) {
+        currentMass = baseMass * 2.0;
+        isSpaceBarPressed = true;
+        /*
+        
         isSpaceBarPressed = true; 
         if (vel.second < 0.0 || (vel.second < 0.1 && (vel.first > 0.05 || vel.first < -0.05))) {
             // Falling vertically or diagonally
@@ -192,9 +196,14 @@ void Player::handleInput(const InputManager& input) {
             vel.second *= controlledJumpFactor;
             cout << "[Space] Controlled Upward Jump\n";
         }
+            */
+    }
+    else{
+        currentMass = baseMass;
     }
 
     setVelocity(vel);
+    
 }
 
 void Player::setJumping(bool isJumping) {
@@ -258,4 +267,8 @@ void Player::changeSurface(){
 
 bool Player::getOnSurface(){
     return onSurface;
+}
+
+double Player::getCurrentMass(){
+    return currentMass;
 }
