@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 
+
 using namespace std;
 
 struct Button {
@@ -83,6 +84,12 @@ void mouse(int button, int state, int x, int y) {
                 std::cout << "Button clicked: " << btn.label << std::endl;
                 if (btn.label == "Quit") {
                     exit(0);
+                }
+                else if(btn.label=="Local Player"){
+                    system("./maps/opengl_glut");
+                    glutDestroyWindow(glutGetWindow()); // Close the menu window
+                    exit(0); // Launch the game
+                    // execl("./maps/opengl_glut", "./maps/opengl_glut", (char*)NULL);
                 }
             }
         }
