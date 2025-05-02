@@ -18,6 +18,22 @@ Player ball2(2);
 
 using namespace std;
 
+void reshape(int width, int height) {
+    glViewport(0, 0, width, height);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    float aspect = (float)width / (float)height;
+
+    if (aspect >= 1.0f) {
+        gluOrtho2D(-aspect, aspect, -1.0, 1.0);
+    } else {
+        gluOrtho2D(-1.0, 1.0, -1.0 / aspect, 1.0 / aspect);
+    }
+
+    glMatrixMode(GL_MODELVIEW);
+}
+
 void displaykoko(){
     renderer.display();
 }
@@ -60,13 +76,14 @@ int main(int argc, char** argv) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(-1, 1, -1, 1);
+    glutReshapeFunc(reshape);
     // renderer.addPlatform(map);
     renderer.setMap(&gangGrounds);
     //renderer.setMap(&map);
 
-    ball1.setPosition({0.0, 0.15}); //initial position for the ball, and ig we need to make a loop of players and set the position keda if we are playing with two
+    ball1.setPosition({0.0, 0.40}); //initial position for the ball, and ig we need to make a loop of players and set the position keda if we are playing with two
     ball1.setColor({1.0, 0.0, 0});
-    ball2.setPosition({-0.5, 0.13});
+    ball2.setPosition({-0.5, 0.45});
     ball2.setColor({1.0, 0.647, 0.0});
 
 
