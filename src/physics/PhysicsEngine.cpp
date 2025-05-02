@@ -31,26 +31,31 @@ void PhysicsEngine::updatePhysics(GameObject &object, double deltaTime)
         currentPosition.first += currentVelocity.first * step;
         currentPosition.second += currentVelocity.second * step;
 
-        currentMomentum.first = object.getMass() * currentVelocity.first;
-        currentMomentum.second = object.getMass() * currentVelocity.second;
         currentAcceleration = {0, 0};
 
         // need to handle X and y acceleration
        Player *player = dynamic_cast<Player *>(&object);
         if (player) {
+            currentMomentum.first = player->getCurrentMass() * currentVelocity.first;
+            currentMomentum.second = player->getCurrentMass() * currentVelocity.second;
+
             if (player->isJumping() || !player->getOnSurface()) {
                 cout<<player->isJumping()<<" "<<player->getOnSurface()<<"\n";
                 //currentAcceleration.second -= gravity * step; // Only apply gravity if still jumping
                 pair<double, double> gravitationalAcceleration = applyForce(*player, 0, -player->getCurrentMass() * gravity);
                 currentAcceleration.first += gravitationalAcceleration.first;
                 currentAcceleration.second += gravitationalAcceleration.second;
+                // player->setJumping(false);
             } else {
                 cout<<"changed back!\n";
                 currentAcceleration.second = 0; // No more vertical acceleration
-                currentVelocity.second = 0;     // No more vertical velocity
+                //currentVelocity.second/= 2;     // No more vertical velocity
             }
         }
-
+        else{
+            currentMomentum.first = object.getMass() * currentVelocity.first;
+            currentMomentum.second = object.getMass() * currentVelocity.second;
+        }
 
         object.update(currentPosition, currentVelocity, currentMomentum, currentAcceleration);
         timeLeft -= step;
@@ -256,8 +261,8 @@ void PhysicsEngine::resolvePlayerCollision(Player &p1, Player &p2)
     double v1n = v1.first * x_Normal + v1.second * y_Normal;
     double v2n = v2.first * x_Normal + v2.second * y_Normal;
 
-    double m1 = p1.getMass();
-    double m2 = p2.getMass();
+    double m1 = p1.getCurrentMass();
+    double m2 = p2.getCurrentMass();
 
     double v1nAfter = (v1n * (m1 - m2) + 2 * m2 * v2n) / (m1 + m2);
     double v2nAfter = (v2n * (m2 - m1) + 2 * m1 * v1n) / (m1 + m2);
@@ -325,8 +330,8 @@ void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
     // Only reflect if moving into wall
     if (v_dot_n < 0) {
         // Reflect velocity
-        double bounceFactor = 1.0; // make this >1.0 for stronger bounce
-        vel.first -= (1 + bounceFactor) * v_dot_n * normalX;
+        double bounceFactor = 0.3; // make this >1.0 for stronger bounce
+        vel.first -= (1.5 + bounceFactor) * v_dot_n * normalX;
         vel.second -= (1 + bounceFactor) * v_dot_n * normalY;
         player.setVelocity(vel);
     }
@@ -343,7 +348,7 @@ void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
     // instead of using vertical and horizontal, we just compare the player's position with the platform's top position
     if (normalY == 1 && vel.second > 0 && player.getPosition().second - radius <= bounds.top) {
         // The player has landed on top of the platform, so stop vertical velocity:
-        vel.second = 0;
+        //vel.second = 0;
         player.setVelocity(vel);
         player.setJumping(false);
         player.changeSurface();

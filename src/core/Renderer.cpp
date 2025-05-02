@@ -96,7 +96,8 @@ void Renderer::update() {
         if (map) {
             for (auto& platform : map->getPlatforms()) {
                 if (physicsEngine.checkCollision(player, platform)) {
-                    player.changeSurface();
+                    //player.changeSurface();
+                    //player.setJumping(false);
                     collidedPlatform = &platform;
                     physicsEngine.resolveCollision(player, *collidedPlatform);
                 }

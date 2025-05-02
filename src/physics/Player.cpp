@@ -35,7 +35,7 @@ void Player::handleInput(const InputManager& input) {
     auto vel = getVelocity();
     const double maxSpeed = 0.4;               // Horizontal max speed
     const double moveAccel = 0.02;              // Horizontal acceleration
-    const double baseJumpVelocity = 0.4;       // Normal jump power
+    const double baseJumpVelocity = 0.5;       // Normal jump power
     const double jumpBoost = 0.15;              // 🔵 Boost after bounce (smaller now)
     const double fallBoostForce = -0.12;        // 🔵 Force applied when pressing Space falling
     const double controlledJumpFactor = 0.85;   // 🔵 Shrink vertical speed when holding Space going up
@@ -88,7 +88,7 @@ void Player::handleInput(const InputManager& input) {
         if (isJumping()) {
             vel.first *= 0.99;  // Light air resistance
         } else {
-            vel.first *= 0.9;   // Strong ground friction
+            vel.first *= 0.9;   //Strong ground friction 
         }
         if (abs(vel.first) < 0.001) vel.first = 0;
     }
@@ -96,7 +96,7 @@ void Player::handleInput(const InputManager& input) {
     // --- Handle Jump Combos ---
 
     if (moveJumpSpaceLeft) { // A+W+Space
-        if (!jumping) {
+        if (!jumping || landedRecently || onSurface) {
             vel.first = max(vel.first - moveAccel, -maxSpeed);
             vel.second = baseJumpVelocity * 0.8; // 🔵 Controlled diagonal jump
             vel.second -= 0.05;                  // 🔵 Heavier downward feeling
@@ -106,7 +106,7 @@ void Player::handleInput(const InputManager& input) {
         }
     }
     else if (moveJumpSpaceRight) { // D+W+Space
-        if (!jumping) {
+        if (!jumping || landedRecently || onSurface) {
             vel.first = min(vel.first + moveAccel, maxSpeed);
             vel.second = baseJumpVelocity * 0.8;
             vel.second -= 0.05;
@@ -116,7 +116,7 @@ void Player::handleInput(const InputManager& input) {
         }
     }
     else if (moveAndJumpLeft) { // A+W
-        if (!jumping) {
+        if (!jumping || landedRecently || onSurface) {
             vel.first = max(vel.first - moveAccel, -maxSpeed);
             vel.second = baseJumpVelocity;
             jumping = true;
@@ -131,7 +131,7 @@ void Player::handleInput(const InputManager& input) {
         }
     }
     else if (moveAndJumpRight) { // D+W
-        if (!jumping) {
+        if (!jumping || landedRecently || onSurface) {
             vel.first = min(vel.first + moveAccel, maxSpeed);
             vel.second = baseJumpVelocity;
             jumping = true;
@@ -146,7 +146,7 @@ void Player::handleInput(const InputManager& input) {
         }
     }
     else if (jumpPressed && spacePressed) { // 🔥 W + Space together
-        if (!jumping) {
+        if (!jumping || landedRecently || onSurface) {
             vel.second = baseJumpVelocity * 0.8; // 🔵 Controlled small vertical jump
             vel.second -= 0.05;                  // 🔵 Make it heavier
             jumping = true;
@@ -155,7 +155,7 @@ void Player::handleInput(const InputManager& input) {
         }
     }
     else if (jumpPressed) { // W only
-        if (!jumping || landedRecently) {  // Allow boosting if just landed
+        if (!jumping || landedRecently || onSurface) {  // Allow boosting if just landed
             vel.second = baseJumpVelocity;
             jumping = true;
             resetFallBoost();
