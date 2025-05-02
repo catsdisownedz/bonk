@@ -1,17 +1,18 @@
-//communiates with network manager to initiate connections 
-//#include <GLUT/glut.h>
-//run:g++ -o menu MenuManager.cpp -framework OpenGL -framework GLUT
+#include "../../include/core/SoundPlayer.h"
 #include <GL/glut.h>
 #include <iostream>
 #include <string>
-
+#include <vector>
 
 using namespace std;
+
+SoundPlayer soundPlayer;
 
 struct Button {
     float x, y, width, height;
     string label;
     bool highlighted = false;
+    bool wasHovered = false;  // 🔄 For hover tracking
 };
 
 const int WINDOW_WIDTH = 800;
@@ -32,9 +33,8 @@ void renderBitmapString(float x, float y, void* font, const char* string) {
 }
 
 void drawButton(const Button& btn) {
-    
     if (btn.highlighted) {
-        glColor3f(1.0f, 0.8f, 0.85f); 
+        glColor3f(1.0f, 0.8f, 0.85f);
         glBegin(GL_QUADS);
         glVertex2f(btn.x - 5, btn.y - 5);
         glVertex2f(btn.x + btn.width + 5, btn.y - 5);
@@ -51,7 +51,6 @@ void drawButton(const Button& btn) {
     glVertex2f(btn.x, btn.y + btn.height);
     glEnd();
 
-    
     glColor3f(1.0f, 1.0f, 1.0f);
     float text_x = btn.x + (btn.width / 2) - (btn.label.length() * 4.5f);
     float text_y = btn.y + (btn.height / 2) - 5;
@@ -60,12 +59,8 @@ void drawButton(const Button& btn) {
 
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
-
-
-    glColor3f(1, 1, 1);
     renderBitmapString(WINDOW_WIDTH / 2 - 70, 500, GLUT_BITMAP_TIMES_ROMAN_24, "Main Menu");
 
-   
     for (const Button& btn : buttons) {
         drawButton(btn);
     }
@@ -77,24 +72,36 @@ void mouse(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         y = WINDOW_HEIGHT - y;
         for (Button& btn : buttons) {
-            btn.highlighted = false;
             if (x >= btn.x && x <= btn.x + btn.width &&
                 y >= btn.y && y <= btn.y + btn.height) {
-                btn.highlighted = true;
-                std::cout << "Button clicked: " << btn.label << std::endl;
+
+                cout << "Button clicked: " << btn.label << endl;
                 if (btn.label == "Quit") {
                     exit(0);
-                }
-                else if(btn.label=="Local Player"){
-                    system("./maps/opengl_glut");
-                    glutDestroyWindow(glutGetWindow()); // Close the menu window
-                    exit(0); // Launch the game
-                    // execl("./maps/opengl_glut", "./maps/opengl_glut", (char*)NULL);
+                } else if (btn.label == "Local Player") {
+                    system("../../../build/output/opengl_glut.exe");
+                    glutDestroyWindow(glutGetWindow());
+                    exit(0);
                 }
             }
         }
-        glutPostRedisplay();
     }
+}
+
+void passiveMotion(int x, int y) {
+    y = WINDOW_HEIGHT - y;
+    for (Button& btn : buttons) {
+        bool nowHovering = (x >= btn.x && x <= btn.x + btn.width &&
+                            y >= btn.y && y <= btn.y + btn.height);
+
+        if (nowHovering && !btn.wasHovered) {
+            soundPlayer.playSound("click");
+        }
+
+        btn.highlighted = nowHovering;
+        btn.wasHovered = nowHovering;
+    }
+    glutPostRedisplay();
 }
 
 void initButtons() {
@@ -109,11 +116,13 @@ void initButtons() {
 }
 
 void init() {
-    glClearColor(0.3f, 0.25f, 0.32f, 1.0f); 
+    glClearColor(0.3f, 0.25f, 0.32f, 1.0f);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT);
     initButtons();
+
+    soundPlayer.loadSound("click", "../../assets/audio/click.wav");  // Adjust path if needed
 }
 
 int main(int argc, char** argv) {
@@ -126,6 +135,7 @@ int main(int argc, char** argv) {
 
     glutDisplayFunc(display);
     glutMouseFunc(mouse);
+    glutPassiveMotionFunc(passiveMotion);
 
     glutMainLoop();
     return 0;
