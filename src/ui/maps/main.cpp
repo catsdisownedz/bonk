@@ -69,7 +69,14 @@ int main(int argc, char** argv) {
     
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
-    glutInitWindowSize(850, 800);
+    glutInitWindowSize(800, 600);
+
+    int screenWidth = glutGet(GLUT_SCREEN_WIDTH);
+    int screenHeight = glutGet(GLUT_SCREEN_HEIGHT);
+    int windowX = (screenWidth - 800) / 2;
+    int windowY = (screenHeight - 600) / 2;
+    glutInitWindowPosition(windowX, windowY);
+
     glutCreateWindow("ponk");
 
     glClearColor(0.1, 0.8, 0.6, 0.6);// alwaan el background

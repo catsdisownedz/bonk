@@ -11,7 +11,12 @@
 #include <regex>
 #include <ctime>
 #include "../../external/stb_image.h"
+#include <filesystem>
 
+enum class OS { WINDOWS, LINUX, MAC, UNKNOWN };
+OS currentOS;
+
+using namespace std::filesystem;
 using namespace std;
 using namespace std::chrono;
 
@@ -28,6 +33,19 @@ struct Button {
 struct ColorOption {
     float r, g, b;
 };
+
+OS detectOS() {
+#ifdef _WIN32
+    return OS::WINDOWS;
+#elif __APPLE__
+    return OS::MAC;
+#elif __linux__
+    return OS::LINUX;
+#else
+    return OS::UNKNOWN;
+#endif
+}
+
 
 vector<Button> buttons = {
     {0, 0, 260, 50, "Multiplayer"},
@@ -259,8 +277,24 @@ void mouse(int button, int state, int x, int y) {
             }
 
             if (btn.label == "Quit") exit(0);
+
             else if (btn.label == "Local Player") {
-                system("start ../../build/output/opengl_glut.exe");
+                string runCmd;
+                switch (currentOS) {
+                    case OS::WINDOWS:
+                        runCmd = "./build/output/opengl_glut.exe";
+                        break;
+                    case OS::LINUX:
+                        runCmd = "./build/output/opengl_glut &";
+                        break;
+                    case OS::MAC:
+                        runCmd = "./build/output/opengl_glut &";
+                        break;
+                    default:
+                        cerr << "Unsupported OS\n";
+                        return;
+                }
+                system(runCmd.c_str());
                 glutDestroyWindow(glutGetWindow());
                 exit(0);
             }
@@ -337,19 +371,33 @@ void init() {
     selectedColor = { (rand() % 100) / 100.0f, (rand() % 100) / 100.0f, (rand() % 100) / 100.0f };
     colorSaved = true;
 
-    soundPlayer.loadSound("click", "../../assets/audio/click.wav");
+    auto basePath = current_path();
+    auto soundPath = basePath / "assets" / "audio" / "click.wav";
+    auto gifPath = basePath / "assets" / "gif";
+
+    soundPlayer.loadSound("click", soundPath.string());
     initButtons();
-    loadGifFrames("../../assets/gif");
+    loadGifFrames(gifPath.string());
+
     glutTimerFunc(100, timer, 0);
 }
+
+
 
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+    int screenWidth = glutGet(GLUT_SCREEN_WIDTH);
+    int screenHeight = glutGet(GLUT_SCREEN_HEIGHT);
+    int windowX = (screenWidth - WINDOW_WIDTH) / 2;
+    int windowY = (screenHeight - WINDOW_HEIGHT) / 2;
+    glutInitWindowPosition(windowX, windowY);
+
     glutCreateWindow("Bonk Menu");
 
     init();
+
     glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
     glutMouseFunc(mouse);
