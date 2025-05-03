@@ -37,6 +37,4 @@ void GangGrounds::draw()
     
     for(auto bouncy: bouncies)
         bouncy.draw();
-
-
 }

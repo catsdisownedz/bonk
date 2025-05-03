@@ -87,8 +87,18 @@ void Renderer::update() {
     for (auto& player : players) {
         player.handleInput(inputManager);
         player.tick();
+<<<<<<< Updated upstream
 
         
+=======
+        // to check if a player has fallen to end the round
+        isGameOver= physicsEngine.checkGameOver(player);
+
+        if(isGameOver!=-1){
+            cout<<"lemme hear you say YEAHAHHA"<< isGameOver<<endl;
+            displayGameOverScreen(isGameOver);
+        }
+>>>>>>> Stashed changes
 
         Platform* collidedPlatform = nullptr;
         Bouncy* collidedBouncy = nullptr;
@@ -108,10 +118,8 @@ void Renderer::update() {
                         collidedBouncy=&bouncy;
                         physicsEngine.resolveCollision(player, *collidedBouncy);
                     }
-
                 }
             }
-
         }
 
         for(auto& otherPlayer : players){
