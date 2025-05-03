@@ -286,6 +286,7 @@ void mouse(int button, int state, int x, int y) {
                         break;
                     case OS::LINUX:
                         runCmd = "./build/output/opengl_glut &";
+                        cout<<"hey koko";
                         break;
                     case OS::MAC:
                         runCmd = "./build/output/opengl_glut &";

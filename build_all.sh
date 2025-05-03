@@ -68,7 +68,11 @@ case "$choice" in
         if $WINDOWS; then
             ./build/output/menu.exe
         else
-            ./build/output/menu
+            echo "[DEBUG] Checking if menu exists: $(ls -l ./build/output/menu)"
+            ./build/output/menu  # This is the Linux version of the executable
+
+    # If you need to run the game, also update to:
+             ./build/output/opengl_glut  # Without .exe extension
         fi
         ;;
     * )
