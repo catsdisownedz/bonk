@@ -1,21 +1,6 @@
 // src/ui/Game.cpp
+#include <ui/Game.h>
 #include <GL/glut.h>
-<<<<<<< Updated upstream
-#include "../../../include/ui/Game.h"
-#include "../../../include/ui/MainMenuScene.h"
-#include "../../../include/ui/OneVsOneScene.h"
-#include "../../../include/ui/GangGroundsScene.h"
-
-using namespace std;
-
-// GLUT callbacks that forward into Game:
-static void displayCB()   { Game::instance().render(); }
-static void timerCB(int)  { Game::instance().update(); glutPostRedisplay(); glutTimerFunc(16,timerCB,0); }
-static void keyDownCB(unsigned char k,int x,int y) { Game::instance().onKeyDown(k,x,y); }
-static void keyUpCB  (unsigned char k,int x,int y) { Game::instance().onKeyUp(k,x,y); }
-static void mouseCB  (int b,int s,int x,int y)      { Game::instance().onMouse(b,s,x,y); }
-static void passiveCB(int x,int y)                  { Game::instance().onPassive(x,y); }
-=======
 #include <ui/MainMenuScene.h>
 #include <ui/OneVsOneScene.h>
 #include <ui/GangGroundsScene.h>
@@ -45,7 +30,6 @@ static void specialUpCB     (int k,int x,int y)           { Game::instance().onS
 static void mouseCB         (int b,int s,int x,int y)     { Game::instance().onMouse(b,s,x,y); }
 static void passiveCB       (int x,int y)                 { Game::instance().onPassiveMotion(x,y); }
 static void reshapeCB       (int w,int h)                 { Game::instance().onReshape(w,h); }
->>>>>>> Stashed changes
 
 Game& Game::instance() {
     static Game g;
@@ -60,20 +44,12 @@ void Game::init() {
     scenes["OneVsOne"]    = new OneVsOneScene();
     scenes["GangGrounds"] = new GangGroundsScene();
 
-    // start in menu
+    // start in main menu
     changeScene("Menu");
 }
 
 void Game::changeScene(const std::string& name) {
     if (currentScene) currentScene->onExit();
-<<<<<<< Updated upstream
-    currentScene = scenes[name];
-    if (currentScene) currentScene->onEnter();
-}
-
-void Game::update()  { if (currentScene) currentScene->update(); }
-void Game::render()  { if (currentScene) currentScene->render(); }
-=======
     currentScene     = scenes[name];
     currentSceneName = name;   
     if (currentScene) {
@@ -94,19 +70,33 @@ void Game::update() {
         currentScene->update();
     }
 }
->>>>>>> Stashed changes
 
-void Game::onKeyDown(unsigned char k,int x,int y) { 
-    if (currentScene) currentScene->handleKeyboard(k,x,y); 
+void Game::render() {
+    if (currentScene) currentScene->render();
 }
-void Game::onKeyUp(unsigned char k,int x,int y) { 
-    if (currentScene) currentScene->handleKeyboardUp(k,x,y); 
+
+void Game::onKeyDown(unsigned char k,int x,int y) {
+    if (currentScene) currentScene->handleKeyboard(k,x,y);
 }
-void Game::onMouse(int b,int s,int x,int y) { 
-    if (currentScene) currentScene->handleMouse(b,s,x,y); 
+void Game::onKeyUp(unsigned char k,int x,int y) {
+    if (currentScene) currentScene->handleKeyboardUp(k,x,y);
 }
-void Game::onPassive(int x,int y) { 
-    if (currentScene) currentScene->handlePassiveMotion(x,y); 
+void Game::onSpecialDown(int k,int x,int y) {
+    if (currentScene) currentScene->handleSpecialDown(k,x,y);
+}
+void Game::onSpecialUp(int k,int x,int y) {
+    if (currentScene) currentScene->handleSpecialUp(k,x,y);
+}
+void Game::onMouse(int b,int s,int x,int y) {
+    if (currentScene) currentScene->handleMouse(b,s,x,y);
+}
+void Game::onPassiveMotion(int x,int y) {
+    if (currentScene) currentScene->handlePassiveMotion(x,y);
+}
+void Game::onReshape(int w,int h) {
+    windowW = w;
+    windowH = h;
+    if (currentScene) currentScene->onReshape(w,h);
 }
 
 // void Game::setPlayerColors(const ColorOption &c1,
@@ -122,20 +112,22 @@ void Game::onPassive(int x,int y) {
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize(800, 600);
+    glutInitWindowSize(800,600);
     glutCreateWindow("Bonk");
 
-    // Initialize all scenes
-    Game::instance().init();
-
-    // Hook up GLUT
+    // hook callbacks *once*
     glutDisplayFunc(displayCB);
-    glutTimerFunc(16,   timerCB,   0);
+    glutTimerFunc(16, timerCB,   0);
     glutKeyboardFunc(keyDownCB);
     glutKeyboardUpFunc(keyUpCB);
+    glutSpecialFunc(specialDownCB);
+    glutSpecialUpFunc(specialUpCB);
     glutMouseFunc(mouseCB);
     glutPassiveMotionFunc(passiveCB);
+    glutReshapeFunc(reshapeCB);
 
+    // now initialize scenes and enter main loop
+    Game::instance().init();
     glutMainLoop();
     return 0;
 }

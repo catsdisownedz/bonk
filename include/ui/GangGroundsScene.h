@@ -1,7 +1,5 @@
 // include/ui/scenes/GangGroundsScene.h
 #pragma once
-<<<<<<< Updated upstream
-=======
 #include <ui/GameScene.h>
 #include <ui/GangGrounds.h>
 #include <core/Renderer.h>
@@ -10,25 +8,15 @@
 #include <ui/ColorOption.h>
 #include <vector>
 using std::vector;
->>>>>>> Stashed changes
 
-#include "../core/Renderer.h"
-#include "../physics/Player.h"
-#include "GangGrounds.h"
-#include "GameScene.h"
+extern InputManager inputManager;
 
 class GangGroundsScene : public GameScene {
-    Renderer renderer;
-    GangGrounds map;
-    Player ball1{1}, ball2{2};
+    Renderer     renderer;
+    GangGrounds  map;
+    Player       ball1{1}, ball2{2};
 
 public:
-<<<<<<< Updated upstream
-    void onEnter() override {
-        renderer.setMap(&map);
-        ball1.setPosition({ 0.0,  0.40 }); ball1.setColor({1,0,0});
-        ball2.setPosition({-0.5, 0.45 }); ball2.setColor({0,0,1});
-=======
     GangGroundsScene() = default;
     ~GangGroundsScene() override = default;
 
@@ -36,16 +24,13 @@ public:
         renderer.setMap(&map);
         ball1.setPosition({0.0, 0.40});  ball1.setColor(p1Color);
         ball2.setPosition({-0.5, 0.45}); ball2.setColor(p2Color);
->>>>>>> Stashed changes
         renderer.addPlayer(ball1);
         renderer.addPlayer(ball2);
     }
-    void onExit() override { /* optional cleanup */ }
+    void onExit() override {
+        /* nothing special */
+    }
 
-<<<<<<< Updated upstream
-    void update() override  { renderer.update(); }
-    void render() override  { renderer.display(); }
-=======
     void update() override {
         renderer.update();
     }
@@ -69,6 +54,5 @@ public:
     void handleMouse(int,int,int,int)                    {}
     void handlePassiveMotion(int,int)                    {}
         
->>>>>>> Stashed changes
 };
 

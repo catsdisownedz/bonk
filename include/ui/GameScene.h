@@ -1,28 +1,13 @@
 // include/ui/GameScene.h
 #pragma once
-<<<<<<< Updated upstream
-
-=======
 //#include <ui/ColorOption.h>
 #include <vector>
 using std::vector;
 /// Abstract base for *every* screen (menu or gameplay).
->>>>>>> Stashed changes
 class GameScene {
 public:
     virtual ~GameScene() {}
-    virtual void onEnter() = 0;                      // called when scene becomes active
-    virtual void onExit()  = 0;                      // called when leaving scene
-    virtual void update()  = 0;                      // called on your timer loop
-    virtual void render()  = 0;                      // called in display callback
 
-<<<<<<< Updated upstream
-    // input events get forwarded here
-    virtual void handleKeyboard(unsigned char key, int x, int y) {}
-    virtual void handleKeyboardUp(unsigned char key, int x, int y) {}
-    virtual void handleMouse(int button, int state, int x, int y) {}
-    virtual void handlePassiveMotion(int x, int y) {}
-=======
     // life‐cycle
     virtual void onEnter(vector<double>& p1Color, vector<double>& p2Color) =0;            // called when scene becomes active
     virtual void onExit()  = 0;            // called before switching away
@@ -41,5 +26,4 @@ public:
     virtual void handleSpecialUp    (int key,int x,int y)      {}
     virtual void handleMouse        (int button,int state,int x,int y) {}
     virtual void handlePassiveMotion(int x,int y)              {}
->>>>>>> Stashed changes
 };

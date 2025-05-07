@@ -1,36 +1,22 @@
 // include/ui/Game.h
 #pragma once
-#include "GameScene.h"
+
 #include <map>
 #include <string>
-<<<<<<< Updated upstream
-
-=======
 #include <ui/GameScene.h>   // your base class for scenes
 #include <vector>
 using std::vector;
->>>>>>> Stashed changes
 class Game {
 public:
+    // singleton accessor
     static Game& instance();
-    void init();                                        // register scenes + start with menu
+
+    // call once at startup
+    void init();
+
+    // switch active scene by name
     void changeScene(const std::string& name);
 
-<<<<<<< Updated upstream
-    void update();                                      // forward to currentScene
-    void render();                                      // forward to currentScene
-
-    // input dispatchers
-    void onKeyDown(unsigned char key,int x,int y);
-    void onKeyUp  (unsigned char key,int x,int y);
-    void onMouse  (int b,int s,int x,int y);
-    void onPassive(int x,int y);
-
-private:
-    Game();
-    std::map<std::string, GameScene*> scenes;
-    GameScene* currentScene = nullptr;
-=======
     // per-frame update & render
     void update();
     void render();
@@ -66,5 +52,4 @@ private:
     // store last window size so new scenes can reapply projections
     int                  windowW = 800;
     int                  windowH = 600;
->>>>>>> Stashed changes
 };

@@ -1,11 +1,11 @@
 //hena opengl b2a we hnst5dm gameobkect and ui element for rendering 
 
 #include <GL/glut.h>
-#include "../../include/core/Renderer.h"
-#include "../../include/ui/OneVsOne.h"
-#include "../../include/ui/GangGrounds.h"
-#include "../../include/physics/PhysicsEngine.h"
-#include "../../include/core/InputManager.h"
+#include <core/Renderer.h>
+#include <ui/OneVsOne.h>
+#include <ui/GangGrounds.h>
+#include <physics/PhysicsEngine.h>
+#include <core/InputManager.h>
 #include <iostream>
 
 using namespace std;
@@ -84,13 +84,10 @@ void Renderer::display() {
 
 
 void Renderer::update() {
+    int isGameOver=-1;
     for (auto& player : players) {
         player.handleInput(inputManager);
         player.tick();
-<<<<<<< Updated upstream
-
-        
-=======
         // to check if a player has fallen to end the round
         isGameOver= physicsEngine.checkGameOver(player);
 
@@ -98,7 +95,6 @@ void Renderer::update() {
             cout<<"lemme hear you say YEAHAHHA"<< isGameOver<<endl;
             displayGameOverScreen(isGameOver);
         }
->>>>>>> Stashed changes
 
         Platform* collidedPlatform = nullptr;
         Bouncy* collidedBouncy = nullptr;
@@ -130,9 +126,23 @@ void Renderer::update() {
             }
         }
     } 
-
-    glutPostRedisplay(); 
+    if(isGameOver==-1)
+        glutPostRedisplay(); 
 } 
+
+void Renderer::displayGameOverScreen(int loserPlayer) {
+    // Display the Game Over screen here
+    glClear(GL_COLOR_BUFFER_BIT);
+    glColor3f(1.0f, 0.0f, 0.0f);  // Red color for game over text
+    glRasterPos2f(-0.6f, 0.0f);   // Position the text
+
+    string msg = "GAME OVER! Player " + to_string(loserPlayer ) + " lost ya lozar ya fashel ";
+    for (char c : msg) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);  // Render each character
+    }
+
+    glutSwapBuffers();  // Swap buffers to display the game over screen
+}
 
 
 
