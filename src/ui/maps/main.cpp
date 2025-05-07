@@ -8,11 +8,11 @@
 #include <physics/PhysicsEngine.h>
 #include <iostream>
 
-//PhysicsEngine physics;
-InputManager inputManager;
+extern PhysicsEngine physics;
+extern InputManager inputManager;
 Renderer renderer;
 OneVsOne map;  
-GangGrounds gangGrounds;
+//GangGrounds gangGrounds;
 Player ball1(1);
 Player ball2(2);
 
@@ -85,8 +85,8 @@ int main(int argc, char** argv) {
     gluOrtho2D(-1, 1, -1, 1);
     glutReshapeFunc(reshape);
     // renderer.addPlatform(map);
-    renderer.setMap(&gangGrounds);
-    //renderer.setMap(&map);
+    //renderer.setMap(&gangGrounds);
+    renderer.setMap(&map);
 
     ball1.setPosition({0.0, 0.40}); //initial position for the ball, and ig we need to make a loop of players and set the position keda if we are playing with two
     ball1.setColor({1.0, 0.0, 0});

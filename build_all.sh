@@ -56,10 +56,11 @@ elif $LINUX; then
 elif $MAC; then
   LIBS="-framework OpenAL -framework OpenGL -framework GLUT"
   OUT=build/output/bonk
+  EXTRA_FLAGS="-Wno-deprecated-declarations"
 fi
 
 echo "[BUILD] Compiling into $OUT"
-g++ -std=c++17 "${SOURCES[@]}" $INCLUDE_FLAGS $LIBS -o "$OUT"
+g++ -std=c++17 "${SOURCES[@]}" $INCLUDE_FLAGS $LIBS $EXTRA_FLAGS -o "$OUT"
 if [ $? -ne 0 ]; then
   echo "[ERROR] Build failed."
   exit 1
