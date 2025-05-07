@@ -5,7 +5,7 @@
 #include <core/Renderer.h>
 #include <physics/Player.h>
 #include <core/InputManager.h> 
-#include <ui/ColorOption.h>
+//#include <ui/ColorOption.h>
 #include <vector>
 using std::vector;
 

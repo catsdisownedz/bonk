@@ -3,7 +3,7 @@
 #include <ui/GameScene.h>
 #include <ui/MenuManager.h>
 #include <ui/Game.h>
-#include <ui/ColorOption.h>
+//#include <ui/ColorOption.h>
 #include <vector>
 using std::vector;
 
