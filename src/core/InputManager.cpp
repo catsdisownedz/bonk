@@ -1,9 +1,8 @@
 //ne send input commands to game, menumanager, and network manager 
 //update el player controlled gameobject instance
 
-
- #include "../../include/core/InputManager.h"
-
+#include <core/InputManager.h>
+InputManager inputManager;
 
  
 void InputManager::specialKeyDown(int key) {
