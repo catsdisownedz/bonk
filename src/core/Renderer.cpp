@@ -89,11 +89,11 @@ void Renderer::update() {
         player.handleInput(inputManager);
         player.tick();
         // to check if a player has fallen to end the round
-        isGameOver= physicsEngine.checkGameOver(player);
+        //isGameOver= physicsEngine.checkGameOver(player);
 
         if(isGameOver!=-1){
             cout<<"lemme hear you say YEAHAHHA"<< isGameOver<<endl;
-            displayGameOverScreen(isGameOver);
+            //displayGameOverScreen(isGameOver);
         }
 
         Platform* collidedPlatform = nullptr;
@@ -130,19 +130,19 @@ void Renderer::update() {
         glutPostRedisplay(); 
 } 
 
-void Renderer::displayGameOverScreen(int loserPlayer) {
-    // Display the Game Over screen here
-    glClear(GL_COLOR_BUFFER_BIT);
-    glColor3f(1.0f, 0.0f, 0.0f);  // Red color for game over text
-    glRasterPos2f(-0.6f, 0.0f);   // Position the text
+// void Renderer::displayGameOverScreen(int loserPlayer) {
+//     // Display the Game Over screen here
+//     glClear(GL_COLOR_BUFFER_BIT);
+//     glColor3f(1.0f, 0.0f, 0.0f);  // Red color for game over text
+//     glRasterPos2f(-0.6f, 0.0f);   // Position the text
 
-    string msg = "GAME OVER! Player " + to_string(loserPlayer ) + " lost ya lozar ya fashel ";
-    for (char c : msg) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);  // Render each character
-    }
+//     string msg = "GAME OVER! Player " + to_string(loserPlayer ) + " lost ya lozar ya fashel ";
+//     for (char c : msg) {
+//         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);  // Render each character
+//     }
 
-    glutSwapBuffers();  // Swap buffers to display the game over screen
-}
+//     glutSwapBuffers();  // Swap buffers to display the game over screen
+// }
 
 
 
