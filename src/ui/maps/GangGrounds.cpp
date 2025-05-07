@@ -1,7 +1,7 @@
 #include <GL/glut.h>
-#include "../../../include/ui/GangGrounds.h"
-#include "../../../include/physics/Platform.h"
-#include "../../../include/physics/Bouncy.h"
+#include <ui/GangGrounds.h>
+#include <physics/Platform.h>
+#include <physics/Bouncy.h>
 #include <vector>
 
 GangGrounds::GangGrounds()
@@ -37,6 +37,4 @@ void GangGrounds::draw()
     
     for(auto bouncy: bouncies)
         bouncy.draw();
-
-
 }

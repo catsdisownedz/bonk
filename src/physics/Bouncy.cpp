@@ -1,4 +1,4 @@
-#include "../../include/physics/Bouncy.h"
+#include <physics/Bouncy.h>
 #include <GL/glut.h>
 #include <iostream>
 #include <cmath>

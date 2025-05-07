@@ -1,7 +1,7 @@
 #pragma once
 #include <utility>
-#include "GameObject.h"
-#include "../core/InputManager.h"
+#include <physics/GameObject.h>
+#include <core/InputManager.h>
 using namespace std;
 
 class Player : public GameObject {

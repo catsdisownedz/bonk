@@ -1,7 +1,7 @@
 #pragma once
-#include "../physics/GameObject.h"
-#include "../physics/Player.h"
-#include "../ui/Map.h"
+#include <physics/GameObject.h>
+#include <physics/Player.h>
+#include <ui/Map.h>
 #include <vector>
 #include <memory>
 

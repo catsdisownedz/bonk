@@ -1,8 +1,8 @@
-#include "../../include/physics/PhysicsEngine.h"
-#include "../../include/physics/GameObject.h"
-#include "../../include/physics/Player.h"
-#include "../../include/physics/Platform.h"
-#include "../../include/physics/Bouncy.h"
+#include <physics/PhysicsEngine.h>
+#include <physics/GameObject.h>
+#include <physics/Player.h>
+#include <physics/Platform.h>
+#include <physics/Bouncy.h>
 #include <utility>
 #include <math.h>
 #include <iostream>

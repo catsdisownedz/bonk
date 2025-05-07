@@ -1,6 +1,6 @@
-#include "../../include/physics/Player.h"
-#include "../../include/core/InputManager.h"
-#include "../../include/physics/PhysicsEngine.h"
+#include <physics/Player.h>
+#include <core/InputManager.h>
+#include <physics/PhysicsEngine.h>
 #include <GL/glut.h>
 #include <cmath>
 #include <iostream>

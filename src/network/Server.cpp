@@ -1,8 +1,8 @@
 // Server implementation using WebSocket++
 // Handles game state updates and client connections
 
-#include "../../include/network/Server.h"
-#include "../../include/network/web.h"
+#include <network/Server.h>
+#include <network/web.h>
 #include <iostream>
 #include <cstdlib>
 #include <string>

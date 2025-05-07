@@ -1,82 +1,78 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Detect OS
-OS_TYPE=$(uname)
-WINDOWS=false
-LINUX=false
-MAC=false
+OS_TYPE=$(uname -s)
+WINDOWS=false; LINUX=false; MAC=false
 
-if [[ "$OS_TYPE" == "Linux" ]]; then
-    LINUX=true
-    echo "[OS Detected] Linux"
-elif [[ "$OS_TYPE" == "Darwin" ]]; then
-    MAC=true
-    echo "[OS Detected] macOS"
-elif [[ "$OS_TYPE" =~ "MINGW" || "$OS_TYPE" =~ "MSYS" || "$OS_TYPE" =~ "CYGWIN" ]]; then
-    WINDOWS=true
-    echo "[OS Detected] Windows (Git Bash)"
-else
-    echo "Unsupported OS: $OS_TYPE"
-    exit 1
-fi
+case "$OS_TYPE" in
+  Linux*)            LINUX=true   ;;
+  Darwin*)           MAC=true     ;;
+  MINGW*|MSYS*|CYGWIN*) WINDOWS=true ;;
+  *) echo "Unsupported OS: $OS_TYPE"; exit 1 ;;
+esac
 
-echo "[INFO] Building for $OS_TYPE..."
+echo "[INFO] Building for $OS_TYPE…"
 
-# Create build output dir if not exists
+# Create output dir
 mkdir -p build/output
 
-# Common source paths
-MENU_SRC="src/ui/MenuManager.cpp src/core/SoundPlayer.cpp src/core/ImageLoader.cpp"
-GAME_SRC="src/ui/maps/main.cpp src/ui/maps/OneVsOne.cpp src/ui/maps/GangGrounds.cpp \
-          src/physics/GameObject.cpp src/physics/Player.cpp src/physics/PhysicsEngine.cpp \
-          src/physics/Platform.cpp src/physics/Bouncy.cpp \
-          src/core/InputManager.cpp src/core/Renderer.cpp"
+# All sources for the single bonk binary
+SOURCES=(
+  # entrypoint + scene coordinator
+  src/ui/Game.cpp
 
-INCLUDE_FLAGS="-Isrc/include -Iexternal -Iexternal/openal-soft/include"
+  # menu manager
+  src/ui/MenuManager.cpp
 
-# Compile for the detected OS
+
+  # actual maps (no mains)
+  src/ui/maps/OneVsOne.cpp
+  src/ui/maps/GangGrounds.cpp
+
+  # core systems
+  src/core/SoundPlayer.cpp
+  src/core/InputManager.cpp
+  src/core/Renderer.cpp
+  src/core/ImageLoader.cpp   # your stb_image wrapper
+
+  # physics
+  src/physics/Platform.cpp
+  src/physics/Bouncy.cpp
+  src/physics/Player.cpp
+  src/physics/PhysicsEngine.cpp
+  src/physics/GameObject.cpp
+)
+
+# Point <…> includes at these roots:
+INCLUDE_FLAGS="-Iinclude -Iexternal -Iexternal/openal-soft/include"
+
+# Per‐OS linker flags and output name
 if $WINDOWS; then
-    echo "[BUILD] Compiling menu for Windows..."
-    g++ $MENU_SRC $INCLUDE_FLAGS -Lexternal/openal-soft/lib -o build/output/menu.exe -lOpenAL32 -lfreeglut -lopengl32 -lglu32
-
-    echo "[BUILD] Compiling game for Windows..."
-    g++ $GAME_SRC $INCLUDE_FLAGS -Lexternal/openal-soft/lib -o build/output/opengl_glut.exe -lOpenAL32 -lfreeglut -lopengl32 -lglu32
-
+  LIBS="-Lexternal/openal-soft/lib -lOpenAL32 -lfreeglut -lopengl32 -lglu32"
+  OUT=build/output/bonk.exe
 elif $LINUX; then
-    echo "[BUILD] Compiling menu for Linux..."
-    g++ $MENU_SRC $INCLUDE_FLAGS -o build/output/menu -lopenal -lGL -lGLU -lglut
-
-    echo "[BUILD] Compiling game for Linux..."
-    g++ $GAME_SRC $INCLUDE_FLAGS -o build/output/opengl_glut -lopenal -lGL -lGLU -lglut
-
+  LIBS="-lopenal -lGL -lGLU -lglut"
+  OUT=build/output/bonk
 elif $MAC; then
-    echo "[BUILD] Compiling menu for macOS..."
-    g++ $MENU_SRC $INCLUDE_FLAGS -o build/output/menu -framework OpenAL -framework OpenGL -framework GLUT
+  LIBS="-framework OpenAL -framework OpenGL -framework GLUT"
+  OUT=build/output/bonk
+fi
 
-    echo "[BUILD] Compiling game for macOS..."
-    g++ $GAME_SRC $INCLUDE_FLAGS -o build/output/opengl_glut -framework OpenAL -framework OpenGL -framework GLUT
+echo "[BUILD] Compiling into $OUT"
+g++ -std=c++17 "${SOURCES[@]}" $INCLUDE_FLAGS $LIBS -o "$OUT"
+if [ $? -ne 0 ]; then
+  echo "[ERROR] Build failed."
+  exit 1
 fi
 
 echo "[SUCCESS] Build complete ✅"
 
-# Ask to run the menu
-read -p "Do you want to run the Menu Manager now? (y/n): " choice
-case "$choice" in
-    y|Y )
-        echo "[INFO] Running Menu Manager..."
-        cd "$(dirname "$0")"
-        if $WINDOWS; then
-            ./build/output/menu.exe
-        else
-            echo "[DEBUG] Checking if menu exists: $(ls -l ./build/output/menu)"
-            ./build/output/menu  # This is the Linux version of the executable
-
-    # If you need to run the game, also update to:
-             ./build/output/opengl_glut  # Without .exe extension
-        fi
-        ;;
-    * )
-        echo "[INFO] Menu Manager not launched."
-        ;;
-esac
-
+# Optionally run
+read -p "Run Bonk now? (y/N) " run
+if [[ "$run" =~ ^[Yy]$ ]]; then
+  if $WINDOWS; then
+    ./build/output/bonk.exe
+  else
+    ./build/output/bonk
+  fi
+fi

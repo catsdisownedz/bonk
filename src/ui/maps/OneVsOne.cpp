@@ -1,36 +1,25 @@
 #include <GL/glut.h>
-#include "../../../include/ui/OneVsOne.h"
-#include "../../../include/physics/Platform.h"
+#include <ui/OneVsOne.h>
+#include <physics/Platform.h>
 #include <vector>
 #include <stdexcept>
 
-//(0.5,0.87)
-//(0.5,0.07)
-//(0.67,0.07)
-//(0.57,0.87)
-
-OneVsOne::OneVsOne()
-{
-    // Any other initialization goes here
-    // Platform horizontal = Platform({-0.67, 0.07}, true, 1.34, 0.14, {0.0, 0.0, 1.0}); //original
-    Platform horizontal = Platform({-0.67, 0.07}, true, 1.34, 0.14, {0.0, 0.0, 1.0});
-    Platform vertical = Platform({0.5, 0.87}, false, 0.05, 0.8, {0.0, 0.0, 1.0}); //original
-    platforms.push_back(horizontal);
-    platforms.push_back(vertical);
+OneVsOne::OneVsOne() {
+    platforms.push_back(
+      Platform({-0.67,0.07}, true, 1.34, 0.14, {0,0,1}));
+    platforms.push_back(
+      Platform({ 0.5, 0.87}, false,0.05, 0.8,  {0,0,1}));
 }
 
-vector<Platform> &OneVsOne::getPlatforms()
-{
+std::vector<Platform>& OneVsOne::getPlatforms() {
     return platforms;
 }
 
-vector<Bouncy>& OneVsOne::getBouncies() {
-    static vector<Bouncy> empty;
+std::vector<Bouncy>& OneVsOne::getBouncies() {
+    static std::vector<Bouncy> empty;
     return empty;
 }
 
-void OneVsOne::draw()
-{
-    platforms[0].draw();
-    platforms[1].draw();
+void OneVsOne::draw() {
+    for (auto& p : platforms) p.draw();
 }
