@@ -1,4 +1,4 @@
-//#include "../include/network/NetworkManager.h"
+//#include <network/NetworkManager.h>
 #include <iostream>
 #include <signal.h>
 #include <atomic>

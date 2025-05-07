@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Map.h"
-#include "../physics/Player.h"
-#include "../physics/Platform.h"
-#include "../physics/Bouncy.h"
+#include <ui/Map.h>
+#include <physics/Player.h>
+#include <physics/Platform.h>
+#include <physics/Bouncy.h>
 #include <vector>
 
 class OneVsOne : public Map

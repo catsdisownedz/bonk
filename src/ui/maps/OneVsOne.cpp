@@ -1,6 +1,6 @@
 #include <GL/glut.h>
-#include "../../../include/ui/OneVsOne.h"
-#include "../../../include/physics/Platform.h"
+#include <ui/OneVsOne.h>
+#include <physics/Platform.h>
 #include <vector>
 #include <stdexcept>
 

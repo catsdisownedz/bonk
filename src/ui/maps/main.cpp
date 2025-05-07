@@ -1,11 +1,11 @@
 #include <GL/glut.h>
-#include "../../../include/ui/Map.h"
-#include "../../../include/ui/OneVsOne.h"
-#include "../../../include/ui/GangGrounds.h"
-#include "../../../include/physics/Player.h"
-#include "../../../include/core/Renderer.h"
-#include "../../../include/core/InputManager.h"
-#include "../../../include/physics/PhysicsEngine.h"
+#include <ui/Map.h>
+#include <ui/OneVsOne.h>
+#include <ui/GangGrounds.h>
+#include <physics/Player.h>
+#include <core/Renderer.h>
+#include <core/InputManager.h>
+#include <physics/PhysicsEngine.h>
 #include <iostream>
 
 //PhysicsEngine physics;

@@ -1,6 +1,6 @@
 #pragma once
-#include "../physics/Platform.h"
-#include "../physics/Bouncy.h"
+#include <physics/Platform.h>
+#include <physics/Bouncy.h>
 #include <vector>
 
 class Map {

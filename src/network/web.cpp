@@ -1,4 +1,4 @@
-#include "../../include/network/web.h"
+#include <network/web.h>
 #include <string>
 #include <sstream>
 #include <chrono>
