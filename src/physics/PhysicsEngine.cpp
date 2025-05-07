@@ -116,8 +116,8 @@ void PhysicsEngine::resolveCollision(GameObject &object1, GameObject &object2)
     Player *player2 = dynamic_cast<Player *>(&object2);
     Platform *platform1 = dynamic_cast<Platform *>(&object1);
     Platform *platform2 = dynamic_cast<Platform *>(&object2);
-    Bouncy *bouncy1=dynamic_cast<Bouncy *>(&object1);
-    Bouncy *bouncy2=dynamic_cast<Bouncy *>(&object2);
+    Bouncy *bouncy1 = dynamic_cast<Bouncy *>(&object1);
+    Bouncy *bouncy2 = dynamic_cast<Bouncy *>(&object2);
 
     if (player1 && player2) {
         cout << "[RESOLVE] Resolving player-player collision\n";
@@ -292,7 +292,7 @@ void PhysicsEngine::resolvePlayerCollision(Player &p1, Player &p2)
 
 void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
     const double radius = 0.08;
-    const double margin = 0.01;
+    const double margin = 0.02;
     auto pos = player.getPosition();
     auto vel = player.getVelocity();
 
@@ -346,9 +346,10 @@ void PhysicsEngine::resolveWallCollision(Player& player, Platform& platform) {
 
     // vertical vs horizontal bit
     // instead of using vertical and horizontal, we just compare the player's position with the platform's top position
-    if (normalY == 1 && vel.second > 0 && player.getPosition().second - radius <= bounds.top) {
+    if (normalY > 0.7 && player.getPosition().second - radius <= bounds.top + margin) {
         // The player has landed on top of the platform, so stop vertical velocity:
         //vel.second = 0;
+        cout <<"on platform!"<<"\n";
         player.setVelocity(vel);
         player.setJumping(false);
         player.changeSurface();

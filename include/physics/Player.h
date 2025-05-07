@@ -10,7 +10,7 @@ class Player : public GameObject {
         void updateScore(){score++;};
         int getId(){return id;};
         int returnScore(){return score;};
-        void move(unsigned char key,int x, int y);
+        void move(double x);
         void update(pair<double, double> position, pair<double, double> velocity, pair<double, double> momentum, pair<double, double> acceleration);
         bool isJumping();
         void setJumping(bool isJumping);

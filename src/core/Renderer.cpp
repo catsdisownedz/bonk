@@ -14,7 +14,6 @@ extern InputManager inputManager;
 PhysicsEngine physicsEngine;
 Renderer::Renderer(){
     
-
 }
 
 void Renderer::addPlayer(const Player& player) {
