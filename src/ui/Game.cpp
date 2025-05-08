@@ -14,6 +14,8 @@ static void timerCB(int) {
     auto& G = Game::instance();
     // advance simulation & queue a redraw
     G.update();
+    // G.player1.setName( MenuManager::instance().getUsername() );
+    // G.player2.setName( /* another name if you want */ );
     glutPostRedisplay();
     // choose next delay based on which scene is live
     int delayMs = (G.getCurrentSceneName() == "Menu")

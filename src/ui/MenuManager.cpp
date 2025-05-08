@@ -38,7 +38,11 @@ void MenuManager::generateRandomPlayerColors() {
 }
 
 void MenuManager::init() {
-    glClearColor(0,0,0,1);
+    glClearColor(0,0,0,1);std::string username2;
+bool        username2Saved;
+bool        triedToProceedWithoutUsername2;
+bool        showSecondUsername = false;
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT);
@@ -99,6 +103,13 @@ void MenuManager::onEnter() {
     username.clear();
     usernameSaved = false;
     triedToProceedWithoutUsername = false;
+
+    username2.clear();
+    username2Saved = false;
+    triedToProceedWithoutUsername2 = false;
+    showSecondUsername = false; 
+    activeUsername     = 1;
+
     showColorPicker = false;
     showCursor = true;
     highlightColorBox = false;
@@ -135,16 +146,23 @@ void MenuManager::render() {
 }
 
 void MenuManager::handleKeyboard(unsigned char key,int x,int y) {
-    if (key == 8 && !username.empty()) {
-        username.pop_back();
-    } else if (username.size() < 12 && isalnum(key)) {
-        username.push_back(key);
+    // choose which field we’re editing:
+    std::string &curName       = (activeUsername == 1 ? username  : username2);
+    bool        &curSaved      = (activeUsername == 1 ? usernameSaved  : username2Saved);
+    bool        &curTriedFlag  = (activeUsername == 1 ? triedToProceedWithoutUsername  : triedToProceedWithoutUsername2);
+
+    if (key == 8) {               // Backspace
+        if (!curName.empty()) curName.pop_back();
     }
-    // mark saved and reset timer
-    usernameSaved   = true;
-    triedToProceedWithoutUsername = !usernameSaved;
-    lastSaveTime    = std::chrono::steady_clock::now();
+    else if (isalnum(key) && curName.size() < 12) {
+        curName.push_back(key);
+    }
+    // mark saved / “*required”
+    curSaved     = true;
+    curTriedFlag = !curSaved;
+    lastSaveTime = std::chrono::steady_clock::now();
 }
+
 
 
 void MenuManager::handleKeyboardUp(unsigned char /*key*/,int/*x*/,int/*y*/) {
@@ -217,23 +235,35 @@ void MenuManager::handleMouse(int button,int state,int x,int y) {
     }
 
     if (currentScene==Scene::MAIN_MENU) {
-        // main-menu buttons
-        for (auto &b : menuButtons) {
-            if (x>=b.x && x<=b.x+b.width
-             && y>=b.y && y<=b.y+b.height)
-            {
+      for (auto &b : menuButtons) {
+        if (x>=b.x && x<=b.x+b.width
+        && y>=b.y && y<=b.y+b.height)
+              {
                 if (!usernameSaved) {
-                    triedToProceedWithoutUsername = true;
-                    return;
+                  triedToProceedWithoutUsername = true;
+                  return;
                 }
                 if (b.label=="Quit") exit(0);
-                if (b.label=="Local Player") {
-                    currentScene = Scene::MAP_SELECTION;
-                    return;
-                }
-            }
+                if (b.label == "Local Player") {
+              if (!showSecondUsername) {
+                  // first click: reveal second‐username field only
+                  showSecondUsername = true;
+                  activeUsername     = 2;            // auto‐focus box2
+              }
+              else {
+                  // second click: only proceed if user2 has text
+                  if (username2Saved && !username2.empty()) {
+                      currentScene = Scene::MAP_SELECTION;
+                  } else {
+                      triedToProceedWithoutUsername2 = true;
+                  }
+              }
+              return;
+          }
         }
-    } else {
+      }
+    }
+ else {
         // map-selection
         for (auto &b : mapButtons) {
             if (x>=b.x && x<=b.x+b.width
@@ -293,6 +323,9 @@ void MenuManager::onReshape(int w,int h) {
 void MenuManager::launchGame(const std::string& mapName) {
     selectedMap = mapName;
     auto &G = Game::instance();
+    G.setPlayerNames(username,
+                     showSecondUsername ? username2 : "");
+    
     G.playerColor1 = { playerColors[0].r,
                        playerColors[0].g,
                        playerColors[0].b };
@@ -362,83 +395,136 @@ void MenuManager::drawBackground() {
     glDisable(GL_TEXTURE_2D);
 }
 
+// -----------------------------
+// 2) drawMainMenu()
+// -----------------------------
 void MenuManager::drawMainMenu() {
-    // 1) “Enter Username:” label
-    drawStrokedText(120, 490, "Enter Username:");
+    glClear(GL_COLOR_BUFFER_BIT);
+    drawBackground();
 
-    // 2) Username input box
+    const float fontH      = 12.0f;
+
+    // —— 1) Player One Label & Input ——
+    const float yLabel1    = 490.0f;
+    drawStrokedText(120, yLabel1, "Enter Player One:");
+
+    const float boxBot1    = 480.0f;
+    const float boxTop1    = 505.0f;
     glColor3f(1,1,1);
     glLineWidth(1);
     glBegin(GL_LINE_LOOP);
-      glVertex2f(270,480);
-      glVertex2f(530,480);
-      glVertex2f(530,505);
-      glVertex2f(270,505);
+      glVertex2f(270, boxBot1);
+      glVertex2f(530, boxBot1);
+      glVertex2f(530, boxTop1);
+      glVertex2f(270, boxTop1);
     glEnd();
 
-    // 3) Draw the current username text
-    const float boxBottom = 480, boxTop = 505, fontH = 12;
-    float textY = boxBottom + ((boxTop - boxBottom) - fontH)*0.5f;
-    drawStrokedText(275, textY, username);
+    const float textY1     = boxBot1 + ((boxTop1 - boxBot1) - fontH)*0.5f;
+    drawStrokedText(275, textY1, username);
 
-    // 4) Blinking cursor
-    if (showCursor && username.size() < 12) {
+    if (activeUsername == 1 && showCursor && username.size() < 12) {
       float cx = 275 + username.size()*10;
-      glColor3f(1,1,1);
-      glLineWidth(1);
+      glColor3f(1,1,1); 
       glBegin(GL_LINES);
-        glVertex2f(cx,       textY);
-        glVertex2f(cx, textY + fontH);
+        glVertex2f(cx,       textY1);
+        glVertex2f(cx, textY1 + fontH);
       glEnd();
     }
-
-    // 5) “*required” if username empty
     if (triedToProceedWithoutUsername && username.empty()) {
       glColor3f(1,0,0);
-      drawStrokedText(540, 495, "*required");
+      drawStrokedText(540, yLabel1 + 5, "*required");
+    }
+    if (usernameSaved &&
+        std::chrono::duration_cast<std::chrono::seconds>(
+          std::chrono::steady_clock::now() - lastSaveTime
+        ).count() < 1)
+    {
+      drawStrokedText(WINDOW_WIDTH*0.5f - 30, 20, "Saved");
     }
 
-    // 6) “Choose Color:” label
-    drawStrokedText(120, 445, "Choose Color:");
+    // —— 2) Player Two Label & Input (if shown) ——
+    if (showSecondUsername) {
+      const float yLabel2  = 430.0f;
+      drawStrokedText(120, yLabel2, "Enter Player Two:");
 
-    // 7) Player One color box + label
-    const float boxW = 30, boxH = 30;
-    const float startX = 300, startY = 435;
-    const float gap    = 50;
+      const float boxBot2  = 420.0f;
+      const float boxTop2  = 445.0f;
+      glColor3f(1,1,1);
+      glBegin(GL_LINE_LOOP);
+        glVertex2f(270, boxBot2);
+        glVertex2f(530, boxBot2);
+        glVertex2f(530, boxTop2);
+        glVertex2f(270, boxTop2);
+      glEnd();
 
-    for (int i = 0; i < 2; ++i) {
-    auto &col = playerColors[i];
-    auto &b   = playerColorBoxes[i];
-    glColor3f(col.r, col.g, col.b);
-    glBegin(GL_QUADS);
-        glVertex2f(b.x,      b.y);
-        glVertex2f(b.x+b.width, b.y);
-        glVertex2f(b.x+b.width, b.y+b.height);
-        glVertex2f(b.x,      b.y+b.height);
-    glEnd();
+      const float textY2   = boxBot2 + ((boxTop2 - boxBot2) - fontH)*0.5f;
+      drawStrokedText(275, textY2, username2);
 
-    // border on hover
-    if (hoveredColorBox == i) {
+      if (activeUsername == 2 && showCursor && username2.size() < 12) {
+        float cx2 = 275 + username2.size()*10;
         glColor3f(1,1,1);
-        glLineWidth(2);
-        glBegin(GL_LINE_LOOP);
-        glVertex2f(b.x,      b.y);
-        glVertex2f(b.x+b.width, b.y);
-        glVertex2f(b.x+b.width, b.y+b.height);
-        glVertex2f(b.x,      b.y+b.height);
+        glBegin(GL_LINES);
+          glVertex2f(cx2,       textY2);
+          glVertex2f(cx2, textY2 + fontH);
         glEnd();
+      }
+      if (triedToProceedWithoutUsername2 && username2.empty()) {
+        glColor3f(1,0,0);
+        drawStrokedText(540, yLabel2 + 5, "*required");
+      }
+      if (username2Saved &&
+          std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::steady_clock::now() - lastSaveTime
+          ).count() < 1)
+      {
+        drawStrokedText(WINDOW_WIDTH*0.5f + 30, 20, "Saved");
+      }
     }
 
-    // label underneath
-    const char* lbl = (i==0 ? "Player One" : "Player Two");
-    drawStrokedText(b.x, b.y - 15, lbl, GLUT_BITMAP_HELVETICA_12);
+    // —— 3) Color Picker & Boxes ——
+    const float yColorLabel = 445.0f;
+    drawStrokedText(120, yColorLabel, "Choose Color:");
+
+    const float yColorBox   = 435.0f;
+    int   boxes             = showSecondUsername ? 2 : 1;
+    for (int i = 0; i < boxes; ++i) {
+      // draw directly at the stored position
+      auto &box = playerColorBoxes[i];
+      box.y     = yColorBox;   // keep it in sync
+
+      // fill
+      auto &col = playerColors[i];
+      glColor3f(col.r, col.g, col.b);
+      glBegin(GL_QUADS);
+        glVertex2f(box.x,           box.y);
+        glVertex2f(box.x + box.width, box.y);
+        glVertex2f(box.x + box.width, box.y + box.height);
+        glVertex2f(box.x,           box.y + box.height);
+      glEnd();
+
+      // hover outline
+      if (hoveredColorBox == i) {
+        glColor3f(1,1,1); glLineWidth(2);
+        glBegin(GL_LINE_LOOP);
+          glVertex2f(box.x,           box.y);
+          glVertex2f(box.x + box.width, box.y);
+          glVertex2f(box.x + box.width, box.y + box.height);
+          glVertex2f(box.x,           box.y + box.height);
+        glEnd();
+      }
+
+      // label
+      const char* lbl = (i == 0 ? "Player One" : "Player Two");
+      drawStrokedText(box.x, box.y - 15, lbl, GLUT_BITMAP_HELVETICA_12);
     }
 
-    // 9) Menu buttons
+    // —— 4) Menu Buttons ——
     for (auto &b : menuButtons) {
+      // no shifting—draw exactly where they are stored
       drawButton(b);
     }
 }
+
 
 void MenuManager::drawMapSelection() {
     for (auto &b : mapButtons) drawButton(b);

@@ -5,6 +5,7 @@
 #include <core/Renderer.h>
 #include <physics/Player.h>
 #include <core/InputManager.h> 
+#include <ui/Game.h> 
 //#include <ui/ColorOption.h>
 #include <vector>
 using std::vector;
@@ -20,10 +21,20 @@ public:
     GangGroundsScene() = default;
     ~GangGroundsScene() override = default;
 
-    void onEnter(vector<double>& p1Color, vector<double>& p2Color) override {
+     void onEnter(vector<double>& p1Color, vector<double>& p2Color) override {
+        // 1) fetch names from Game
+        auto &G = Game::instance();
+        ball1.setName( G.getPlayerName(1) );
+        ball2.setName( G.getPlayerName(2) );
+
+        // 2) set up map & colors
         renderer.setMap(&map);
-        ball1.setPosition({0.0, 0.40});  ball1.setColor(p1Color);
-        ball2.setPosition({-0.5, 0.45}); ball2.setColor(p2Color);
+        ball1.setPosition({0.0, 0.40});
+        ball1.setColor(p1Color);
+        ball2.setPosition({-0.5, 0.45});
+        ball2.setColor(p2Color);
+
+        // 3) add them to the renderer
         renderer.addPlayer(ball1);
         renderer.addPlayer(ball2);
     }

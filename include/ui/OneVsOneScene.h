@@ -7,6 +7,7 @@
 #include <physics/Player.h>
 #include <ui/ColorOption.h>
 #include <vector>
+#include <ui/Game.h>
 using std::vector;
 
 extern InputManager inputManager;
@@ -18,11 +19,23 @@ class OneVsOneScene : public GameScene {
 
 public:
     void onEnter(vector<double>& p1Color, vector<double>& p2Color) override {
-        // projection is already set by Game::changeScene → onReshape
-        // configure renderer & players
+    auto &G = Game::instance();
+
+        // 1) pull the names out of Game
+        p1.setName( G.getPlayerName(1) );
+        p2.setName( G.getPlayerName(2) );
+
+        // 2) the rest of your setup
         renderer.setMap(&mapImpl);
-        p1.setPosition({ 0,0.4 }); p1.setColor(p1Color); renderer.addPlayer(p1);
-        p2.setPosition({-0.5,0.45}); p2.setColor(p2Color); renderer.addPlayer(p2);
+
+        p1.setPosition({ 0,0.4 });
+        p1.setColor(p1Color);
+        renderer.addPlayer(p1);
+
+        p2.setPosition({-0.5,0.45});
+        p2.setColor(p2Color);
+        renderer.addPlayer(p2);
+
     }
     void onExit() override {}
     void update() override { renderer.update(); }

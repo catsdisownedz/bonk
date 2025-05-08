@@ -63,8 +63,14 @@ public:
 
 private:
     // state
-    bool recentlySaved = false;
-    std::string username;
+    bool recentlySaved = false; 
+    string username2;
+    bool username2Saved;
+    bool triedToProceedWithoutUsername2;
+    bool showSecondUsername = false;
+    int  activeUsername  = 1; 
+
+    string username;
     bool usernameSaved               = false;
     bool triedToProceedWithoutUsername = false;
     bool showColorPicker             = false;

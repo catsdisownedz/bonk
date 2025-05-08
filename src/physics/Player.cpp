@@ -243,6 +243,49 @@ void Player::draw() {
 
 }
 
+void Player::drawName() const {
+    if (username.empty()) return;
+
+    auto pos = getPosition();
+    const void* font    = GLUT_BITMAP_HELVETICA_18;
+    const float yOffset = 0.12f;   // tweak if you want it closer/farther
+
+    // 1) Measure pixel‐width of the username
+    int pixelWidth = 0;
+    for (char c : username) {
+        pixelWidth += glutBitmapWidth((void*)font, c);
+    }
+
+    // 2) Convert that to WORLD‐coordinates (assuming your ortho is [-1,1])
+    int winW = glutGet(GLUT_WINDOW_WIDTH);
+    float worldW = float(pixelWidth) * (2.0f / float(winW));
+
+    // 3) Compute starting X so text is centered at pos.first
+    float xStart = pos.first - worldW / 2.0f;
+
+    // 4) Draw a thin black “stroke” for contrast
+    const float d = 0.002f;  // stroke offset in world‐coords
+    glColor3f(0,0,0);
+    for (int dx = -1; dx <= 1; ++dx) {
+      for (int dy = -1; dy <= 1; ++dy) {
+        if (dx==0 && dy==0) continue;
+        glRasterPos2f(
+          xStart + dx * d,
+          pos.second - yOffset + dy * d
+        );
+        for (char c : username)
+          glutBitmapCharacter((void*)font, c);
+      }
+    }
+
+    // 5) Draw the white fill on top
+    glColor3f(1,1,1);
+    glRasterPos2f(xStart, pos.second - yOffset);
+    for (char c : username)
+      glutBitmapCharacter((void*)font, c);
+}
+
+
 void Player::display() {
     draw(); 
 }

@@ -67,6 +67,7 @@ void Renderer::display() {
             player.isSpaceBarPressed=false;
         }
         player.display();
+        player.drawName(); 
         //cout<<"count:"<<players.size()<<"\n";
         
         // player's center
