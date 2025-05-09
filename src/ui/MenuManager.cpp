@@ -29,7 +29,7 @@ MenuManager::MenuManager()
     playerColorBoxes[1] = { startX+boxW+gap, startY, boxW, boxH, "" };
 }
 
-template<typename T> struct RGB { T r,g,b; };
+
 void MenuManager::generateRandomPlayerColors() {
     std::random_device rd;
     std::mt19937        gen(rd());
@@ -139,8 +139,8 @@ void MenuManager::render() {
     auto now = std::chrono::steady_clock::now();
     if (curSaved && std::chrono::duration_cast<std::chrono::seconds>(now - lastSaveTime).count() < 2) {
         auto &col = (activeUsername == 1 ? playerColors[0] : playerColors[1]);
-        glColor3f(col.r, col.g, col.b);
-        drawStrokedText(WINDOW_WIDTH*0.5f - 30, 20, "Saved");
+        drawStrokedText(WINDOW_WIDTH*0.5f - 30, 20, "Saved", GLUT_BITMAP_HELVETICA_18,
+                        col.r, col.g, col.b);  // [MODIFIED] pass player color
     }
 
     glutSwapBuffers();
@@ -334,21 +334,25 @@ void MenuManager::drawText(float x,float y,const std::string& txt) {
     for(char c: txt) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
 }
 
-void MenuManager::drawStrokedText(float x,float y,const std::string& txt, void* font) {
-    glColor3f(0,0,0);
-    for (int dx=-1; dx<=1; ++dx) {
-      for (int dy=-1; dy<=1; ++dy) {
-        if (dx||dy) {
-          glRasterPos2f(x+dx, y+dy);
-          for (char c: txt) glutBitmapCharacter(font, c);
+void MenuManager::drawStrokedText(float x, float y,
+                                  const std::string &txt,
+                                  void *font,
+                                  float r, float g, float b) {
+    // draw black outline
+    glColor3f(0, 0, 0);
+    for (int dx = -1; dx <= 1; ++dx) {
+        for (int dy = -1; dy <= 1; ++dy) {
+            if (dx || dy) {
+                glRasterPos2f(x + dx, y + dy);
+                for (char c : txt) glutBitmapCharacter(font, c);
+            }
         }
-      }
     }
-    glColor3f(1,1,1);
-    glRasterPos2f(x,y);
-    for (char c: txt) glutBitmapCharacter(font, c);
+    // draw fill in given color
+    glColor3f(r, g, b);
+    glRasterPos2f(x, y);
+    for (char c : txt) glutBitmapCharacter(font, c);
 }
-
 
 void MenuManager::drawButton(const Button& b) {
     if (b.highlighted) {

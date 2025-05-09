@@ -109,7 +109,13 @@ private:
     // drawing & setup helpers
     void drawText(float x,float y,const std::string& s);
     void drawButton(const Button& b);
-    void drawStrokedText(float x,float y,const std::string& txt, void* font = GLUT_BITMAP_HELVETICA_18);
+    void drawStrokedText(float x, float y,
+                     const std::string& txt,
+                     void* font = GLUT_BITMAP_HELVETICA_18,
+                     float r    = 1.f,
+                     float g    = 1.f,
+                     float b    = 1.f);
+    
     void drawBackground();
     void drawMainMenu();
     void drawMapSelection();
