@@ -6,15 +6,17 @@
 #include <physics/Bouncy.h>
 #include <vector>
 
-class OneVsOne : public Map
+using namespace std;
+
+class SwingBattle : public Map
 {
 public:
-    OneVsOne();
+    SwingBattle();
     void draw() override;
-    vector<Platform>& getPlatforms() override; 
+    vector<Platform>& getPlatforms() override;
     vector<Bouncy>& getBouncies() override;
 
 private:
     vector<Platform> platforms;
-    vector<Player> players;
+    vector<Bouncy>   bouncies;
 };
