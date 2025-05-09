@@ -19,7 +19,7 @@ MenuManager::MenuManager()
     mapButtons{
       {100,400,150,150,"OneVsOne"},
       {300,400,150,150,"GangGrounds"},
-      {500,400,150,150,"Swing"},
+      {500,400,150,150,"SwingBattle"},
       {300,200,150,150,"Randomized"}
     }
 {
