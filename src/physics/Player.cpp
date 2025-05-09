@@ -175,7 +175,6 @@ void Player::handleInput(const InputManager& input) {
         currentMass = baseMass * 2.0;
         isSpaceBarPressed = true;
         /*
-        
         isSpaceBarPressed = true; 
         if (vel.second < 0.0 || (vel.second < 0.1 && (vel.first > 0.05 || vel.first < -0.05))) {
             // Falling vertically or diagonally
@@ -271,4 +270,10 @@ bool Player::getOnSurface(){
 
 double Player::getCurrentMass(){
     return currentMass;
+}
+
+void Player::move(double x){
+    auto vel = getVelocity();
+    vel.first += x;
+    setVelocity(vel);
 }

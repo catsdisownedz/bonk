@@ -46,3 +46,4 @@ PlatformBounds Platform::getBounds() const {
 
     return { platformLeft, platformRight, platformTop, platformBottom };
 }
+

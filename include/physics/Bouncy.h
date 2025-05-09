@@ -10,6 +10,7 @@ private:
    double radius;
     vector<double> colors;
 
+
 public:
     Bouncy(pair<double, double> center, double radius, vector<double> colors);
 

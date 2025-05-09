@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
     glLoadIdentity();
     gluOrtho2D(-1, 1, -1, 1);
     glutReshapeFunc(reshape);
-    // renderer.addPlatform(map);
+    //renderer.addPlatform(map);
     //renderer.setMap(&gangGrounds);
     renderer.setMap(&map);
 

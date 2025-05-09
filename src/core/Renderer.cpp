@@ -6,15 +6,18 @@
 #include <ui/GangGrounds.h>
 #include <physics/PhysicsEngine.h>
 #include <core/InputManager.h>
+#include <physics/Swing.h>
 #include <iostream>
 
 using namespace std;
 
 extern InputManager inputManager;
 PhysicsEngine physicsEngine;
+Swing testSwing({0.0, 0.8}, {0.0, 0.1}, 0.1, 0.2); 
+
+
 Renderer::Renderer(){
     
-
 }
 
 void Renderer::addPlayer(const Player& player) {
@@ -59,6 +62,8 @@ void Renderer::display() {
     // Draw map
     if (map) {
     map->draw();
+    testSwing.draw();
+
     }
 
     // Draw players
@@ -125,6 +130,11 @@ void Renderer::update() {
                 }
             }
         }
+         if(physicsEngine.checkSwingCollision(player, testSwing)){
+                 cout<<"collided with swing!\n";
+        //     physicsEngine.resolveSwingCollision(player, testSwing);
+        //     testSwing.updateSwingPhysics(0.016);
+         }
     } 
     if(isGameOver==-1)
         glutPostRedisplay(); 
