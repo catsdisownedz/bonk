@@ -39,7 +39,16 @@ public:
     }
     void onExit() override {}
     void update() override { renderer.update(); }
-    void render() override { renderer.display(); }
+    void render() override {
+        // 1. set the clear color you want (e.g. dark teal)
+        glClearColor(0.1f, 0.8f, 0.6f, 1.0f);
+        // 2. clear the color buffer
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        // 3. now draw the scene
+        renderer.display();
+    }
+
     void onReshape(int w, int h) override {
         // 1) update viewport
         glViewport(0, 0, w, h);

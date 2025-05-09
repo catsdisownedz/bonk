@@ -46,6 +46,12 @@ public:
         renderer.update();
     }
     void render() override {
+        // 1. set the clear color you want (e.g. dark teal)
+        glClearColor(0.1f, 0.8f, 0.6f, 1.0f);
+        // 2. clear the color buffer
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        // 3. now draw the scene
         renderer.display();
     }
 
