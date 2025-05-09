@@ -29,6 +29,7 @@ MenuManager::MenuManager()
     playerColorBoxes[1] = { startX+boxW+gap, startY, boxW, boxH, "" };
 }
 
+template<typename T> struct RGB { T r,g,b; };
 void MenuManager::generateRandomPlayerColors() {
     std::random_device rd;
     std::mt19937        gen(rd());
@@ -134,12 +135,11 @@ void MenuManager::render() {
 
     drawColorPicker();
 
-     bool curSaved = (activeUsername == 1 ? usernameSaved : username2Saved);
-    if (curSaved) {
-        float r = playerColors[activeUsername-1].r;
-        float g = playerColors[activeUsername-1].g;
-        float b = playerColors[activeUsername-1].b;
-        glColor3f(r, g, b);    // show in player's color
+    bool curSaved = (activeUsername == 1 ? usernameSaved : username2Saved);
+    auto now = std::chrono::steady_clock::now();
+    if (curSaved && std::chrono::duration_cast<std::chrono::seconds>(now - lastSaveTime).count() < 2) {
+        auto &col = (activeUsername == 1 ? playerColors[0] : playerColors[1]);
+        glColor3f(col.r, col.g, col.b);
         drawStrokedText(WINDOW_WIDTH*0.5f - 30, 20, "Saved");
     }
 
