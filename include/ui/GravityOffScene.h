@@ -4,7 +4,7 @@
 #include <ui/GameScene.h>
 #include <core/Renderer.h>
 #include <core/InputManager.h>
-#include <ui/SwingBattle.h>
+#include <ui/GravityOff.h>
 #include <physics/Player.h>
 #include <ui/ColorOption.h>
 #include <vector>
@@ -17,13 +17,13 @@ using std::vector;
 extern InputManager inputManager;
 
 
-class SwingBattleScene : public GameScene {
+class GravityOffScene : public GameScene {
     Renderer     renderer;
-    SwingBattle  map;
+    GravityOff  map;
     Player       ball1{1}, ball2{2};
 public:
-    SwingBattleScene() = default;
-    ~SwingBattleScene() override = default;
+    GravityOffScene() = default;
+    ~GravityOffScene() override = default;
 
     void onEnter(vector<double>& p1Color, vector<double>& p2Color) override {
         // 1) fetch names from Game
@@ -47,8 +47,11 @@ public:
         renderer.update();
     }
     void render() override {
+        glClearColor(0.11f, 0.15f, 0.18f, 1.0f); // Dark teal background
+        glClear(GL_COLOR_BUFFER_BIT);
         renderer.display();
     }
+
     void onReshape(int w,int h) override {
         // keep aspect + viewport
         float a = float(w)/float(h);

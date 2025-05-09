@@ -84,7 +84,13 @@ void Renderer::display() {
 
 
 void Renderer::update() {
+    double deltaTime = 1.0 / 60.0;
     int isGameOver=-1;
+        if (map) {
+        for (auto& platform : map->getPlatforms()) {
+            platform.update(deltaTime);  // move any moving platforms
+        }
+      }
     for (auto& player : players) {
         player.handleInput(inputManager);
         player.tick();

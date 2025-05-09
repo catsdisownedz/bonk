@@ -28,7 +28,7 @@ SOURCES=(
   # actual maps (no mains)
   src/ui/maps/OneVsOne.cpp
   src/ui/maps/GangGrounds.cpp
-  src/ui/maps/SwingBattle.cpp
+  src/ui/maps/GravityOff.cpp
 
   # core systems
   src/core/SoundPlayer.cpp

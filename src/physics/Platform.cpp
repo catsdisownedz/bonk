@@ -3,46 +3,58 @@
 #include <iostream>
 using namespace std;
 
-Platform::Platform(pair<double, double> position, bool horizontal, double length, double width, vector<double> colors)
-    : GameObject(position.first, position.second,colors[0], colors[1], colors[2]),
+
+const double MOVE_SPEED = 0.4; 
+const double MOVE_RANGE = 0.3; 
+
+Platform::Platform(pair<double, double> position, bool horizontal, double length, double width, vector<double> colors, bool isMoving)
+    : GameObject(position.first, position.second, colors[0], colors[1], colors[2]),
       horizontal(horizontal),
       length(length),
       width(width),
-      colors(colors)
+      colors(colors),
+      isMoving(isMoving),
+      direction(1),
+      initialY(position.second)
 {}
 
-    //BL BR TR TL
-    void Platform::draw() {
-        glPushMatrix();
-        glColor3f(colors[0], colors[1], colors[2]);
-        glBegin(GL_QUADS);
-            glVertex2f(getPosition().first, getPosition().second - width);
-            glVertex2f(getPosition().first + length, getPosition().second - width);
-            glVertex2f(getPosition().first + length, getPosition().second);
-            glVertex2f(getPosition().first, getPosition().second);
-        glEnd();
-        glPopMatrix();
+// Draw the platform (BL BR TR TL)
+void Platform::draw() {
+    glPushMatrix();
+    glColor3f(colors[0], colors[1], colors[2]);
+    glBegin(GL_QUADS);
+        glVertex2f(getPosition().first, getPosition().second - width);
+        glVertex2f(getPosition().first + length, getPosition().second - width);
+        glVertex2f(getPosition().first + length, getPosition().second);
+        glVertex2f(getPosition().first, getPosition().second);
+    glEnd();
+    glPopMatrix();
+}
+
+
+void Platform::update(double deltaTime) {
+    if (!isMoving) return;
+
+    auto pos = getPosition();
+    pos.second += direction * MOVE_SPEED * deltaTime;
+
+    if (pos.second > initialY + MOVE_RANGE || pos.second < initialY - MOVE_RANGE) {
+        direction *= -1;
+        pos.second = max(min(pos.second, initialY + MOVE_RANGE), initialY - MOVE_RANGE);
     }
 
-double Platform::getWidth() {
-    return width;
+    setPosition(pos);
 }
 
-double Platform::getLength() {
-    return length;
-}
+double Platform::getWidth() { return width; }
+double Platform::getLength() { return length; }
+bool Platform::isHorizontal() const { return horizontal; }
 
-bool Platform::isHorizontal() const {
-    return horizontal;
-}
-
-// 🔥 NEW FUNCTION
 PlatformBounds Platform::getBounds() const {
-    double platformLeft, platformRight, platformTop, platformBottom;
-    platformLeft = getPosition().first;
-    platformRight = getPosition().first + length;
-    platformTop = getPosition().second;
-    platformBottom = getPosition().second - width;
-
-    return { platformLeft, platformRight, platformTop, platformBottom };
+    double left = getPosition().first;
+    double right = left + length;
+    double top = getPosition().second;
+    double bottom = top - width;
+    return { left, right, top, bottom };
 }
+

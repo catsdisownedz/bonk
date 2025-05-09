@@ -8,10 +8,10 @@
 
 using namespace std;
 
-class SwingBattle : public Map
+class GravityOff : public Map
 {
 public:
-    SwingBattle();
+    GravityOff();
     void draw() override;
     vector<Platform>& getPlatforms() override;
     vector<Bouncy>& getBouncies() override;

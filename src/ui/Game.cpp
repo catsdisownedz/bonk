@@ -4,7 +4,7 @@
 #include <ui/MainMenuScene.h>
 #include <ui/OneVsOneScene.h>
 #include <ui/GangGroundsScene.h>
-#include <ui/SwingBattleScene.h>
+#include <ui/GravityOffScene.h>
 #include <iostream>
 #include <ui/ColorOption.h>
 
@@ -46,7 +46,7 @@ void Game::init() {
     scenes["Menu"]        = new MainMenuScene();
     scenes["OneVsOne"]    = new OneVsOneScene();
     scenes["GangGrounds"] = new GangGroundsScene();
-    scenes["SwingBattle"] = new SwingBattleScene();
+    scenes["GravityOff"] = new GravityOffScene();
 
     // start in main menu
     changeScene("Menu");
