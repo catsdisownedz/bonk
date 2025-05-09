@@ -7,7 +7,7 @@ class GameObject;
 class Player;
 class Platform;
 class Bouncy;
-
+class Swing;
 
 class PhysicsEngine {
     public:
@@ -26,6 +26,8 @@ class PhysicsEngine {
         bool checkBouncyCollision(Player &player , Bouncy &bouncy);
         void resolveBouncyCollision(Player &player , Bouncy &bouncy);
         double applyGravity(Player& player);
+        bool checkSwingCollision(Player& player, Swing& swing);
+        void resolveSwingCollision(Player& player, Swing& swing);
 
     private:
         const double gravity = 1;
