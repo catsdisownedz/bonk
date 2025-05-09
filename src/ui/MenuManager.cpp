@@ -134,11 +134,12 @@ void MenuManager::render() {
 
     drawColorPicker();
 
-    // “Saved” indicator for 1s after typing
-    auto now = std::chrono::steady_clock::now();
-    if (usernameSaved &&
-        std::chrono::duration_cast<std::chrono::seconds>(now - lastSaveTime).count() < 1)
-    {
+     bool curSaved = (activeUsername == 1 ? usernameSaved : username2Saved);
+    if (curSaved) {
+        float r = playerColors[activeUsername-1].r;
+        float g = playerColors[activeUsername-1].g;
+        float b = playerColors[activeUsername-1].b;
+        glColor3f(r, g, b);    // show in player's color
         drawStrokedText(WINDOW_WIDTH*0.5f - 30, 20, "Saved");
     }
 
@@ -170,18 +171,49 @@ void MenuManager::handleKeyboardUp(unsigned char /*key*/,int/*x*/,int/*y*/) {
 }
 
 void MenuManager::handleMouse(int button,int state,int x,int y) {
-    if (button!=GLUT_LEFT_BUTTON || state!=GLUT_DOWN) return;
+    if (button != GLUT_LEFT_BUTTON || state != GLUT_DOWN) return;
     y = WINDOW_HEIGHT - y;
 
-    // color‐picker interaction
-    // in MenuManager::handleMouse(...)
+    if (currentScene == Scene::MAIN_MENU) {
+        // [ADDED] Allow clicking on username fields to focus/re-edit
+        float inputOffset = showSecondUsername ? 30.0f : 0.0f;
+        // Player One field bounds
+        float bot1 = 480.0f + inputOffset, top1 = 505.0f + inputOffset;
+        if (x >= 270 && x <= 530 && y >= bot1 && y <= top1) {
+            activeUsername = 1;
+            showCursor = true;
+            soundPlayer.playSound("click");
+            return;
+        }
+        // Player Two field bounds (if shown)
+        if (showSecondUsername) {
+            float bot2 = 420.0f + inputOffset, top2 = 445.0f + inputOffset;
+            if (x >= 270 && x <= 530 && y >= bot2 && y <= top2) {
+                activeUsername = 2;
+                showCursor = true;
+                soundPlayer.playSound("click");
+                return;
+            }
+        }
+
+        int boxes = showSecondUsername ? 2 : 1;
+        for (int i = 0; i < boxes; ++i) {
+            auto &b = playerColorBoxes[i];
+            if (x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height) {
+                editingColorBox = i;
+                showColorPicker = true;
+                soundPlayer.playSound("click");
+                return;
+            }
+        }
+    }
+
+    // [KEEP] Original color-picker and menu/map button logic:
     if (showColorPicker) {
-        // compute which cell was clicked
         float cell = PICKER_SIZE / float(PICKER_CELLS);
         float sx   = WINDOW_WIDTH - PICKER_MARGIN - PICKER_SIZE;
         float sy   = WINDOW_HEIGHT - PICKER_MARGIN - PICKER_SIZE;
         float dx   = x - sx, dy = y - sy;
-
         if (dx >= 0 && dy >= 0 && dx < PICKER_SIZE && dy < PICKER_SIZE) {
             int col = int(dx / cell), row = int(dy / cell);
             float h = col / float(PICKER_CELLS - 1);
@@ -189,86 +221,45 @@ void MenuManager::handleMouse(int button,int state,int x,int y) {
             int i = int(h * 6);
             float f = (h*6) - i;
             float p = 0.0f, q = v * (1 - f), t = v * (1 - (1 - f));
-
-            // compute RGB
             float r, g, b;
             switch (i % 6) {
-            case 0: r = v; g = t; b = p; break;
-            case 1: r = q; g = v; b = p; break;
-            case 2: r = p; g = v; b = t; break;
-            case 3: r = p; g = q; b = v; break;
-            case 4: r = t; g = p; b = v; break;
-            default:r = v; g = p; b = q; break;
+            case 0: r=v; g=t; b=p; break;
+            case 1: r=q; g=v; b=p; break;
+            case 2: r=p; g=v; b=t; break;
+            case 3: r=p; g=q; b=v; break;
+            case 4: r=t; g=p; b=v; break;
+            default: r=v; g=p; b=q; break;
             }
-
-            // **assign into the correct player slot**
-            playerColors[editingColorBox] = { r, g, b };
-
-            // close the picker
+            playerColors[editingColorBox] = {r,g,b};
             showColorPicker = false;
+            return;
         }
         return;
     }
-
-    // if we clicked one of the two color boxes, open picker for that box
-  if (currentScene == Scene::MAIN_MENU) {
-      for (int i = 0; i < 2; ++i) {
-        auto &b = playerColorBoxes[i];
-        if (x >= b.x && x <= b.x + b.width
-         && y >= b.y && y <= b.y + b.height)
-        {
-          editingColorBox = i;
-          soundPlayer.playSound("click");
-          showColorPicker = true;
-          return;
-        }
-      }
-    }
-
-    // toggle picker
-    if (currentScene==Scene::MAIN_MENU
-     && x>=300 && x<=330 && y>=435 && y<=465)
-    {
-        soundPlayer.playSound("click");
-        showColorPicker = !showColorPicker;
-        return;
-    }
-
-    if (currentScene==Scene::MAIN_MENU) {
-      for (auto &b : menuButtons) {
-        if (x>=b.x && x<=b.x+b.width
-        && y>=b.y && y<=b.y+b.height)
-              {
-                if (!usernameSaved) {
-                  triedToProceedWithoutUsername = true;
-                  return;
+    if (currentScene == Scene::MAIN_MENU) {
+        // reveal second username or proceed
+        for (auto &b : menuButtons) {
+            if (x>=b.x&&x<=b.x+b.width&&y>=b.y&&y<=b.y+b.height) {
+                if (b.label=="Local Player") {
+                    if (!showSecondUsername) {
+                        showSecondUsername = true;
+                        activeUsername = 2;
+                    } else {
+                        if (username2Saved && !username2.empty()) {
+                            currentScene = Scene::MAP_SELECTION;
+                        } else {
+                            triedToProceedWithoutUsername2 = true;
+                        }
+                    }
+                    return;
                 }
                 if (b.label=="Quit") exit(0);
-                if (b.label == "Local Player") {
-              if (!showSecondUsername) {
-                  // first click: reveal second‐username field only
-                  showSecondUsername = true;
-                  activeUsername     = 2;            // auto‐focus box2
-              }
-              else {
-                  // second click: only proceed if user2 has text
-                  if (username2Saved && !username2.empty()) {
-                      currentScene = Scene::MAP_SELECTION;
-                  } else {
-                      triedToProceedWithoutUsername2 = true;
-                  }
-              }
-              return;
-          }
+                if (!usernameSaved) { triedToProceedWithoutUsername = true; return; }
+            }
         }
-      }
-    }
- else {
-        // map-selection
-        for (auto &b : mapButtons) {
-            if (x>=b.x && x<=b.x+b.width
-             && y>=b.y && y<=b.y+b.height)
-            {
+    } else {
+        for (auto &b: mapButtons) {
+            if (x>=b.x&&x<=b.x+b.width&&y>=b.y&&y<=b.y+b.height) {
                 launchGame(b.label);
                 return;
             }
@@ -400,128 +391,94 @@ void MenuManager::drawBackground() {
 // -----------------------------
 void MenuManager::drawMainMenu() {
     glClear(GL_COLOR_BUFFER_BIT);
-    drawBackground();
+    drawBackground(); 
+    // shift elements when two username fields
+    float inputOffset = showSecondUsername ? 30.0f : 0.0f;
 
-    const float fontH      = 12.0f;
-
-    // —— 1) Player One Label & Input ——
-    const float yLabel1    = 490.0f;
-    drawStrokedText(120, yLabel1, "Enter Player One:");
-
-    const float boxBot1    = 480.0f;
-    const float boxTop1    = 505.0f;
-    glColor3f(1,1,1);
-    glLineWidth(1);
+    // Player One label & input
+    float yLabel1 = 490.0f + inputOffset;
+    drawStrokedText(120,yLabel1,"Enter Player One:");
+    float boxBot1 = 480.0f + inputOffset, boxTop1 = 505.0f + inputOffset;
+    glColor3f(1,1,1); glLineWidth(1);
     glBegin(GL_LINE_LOOP);
-      glVertex2f(270, boxBot1);
-      glVertex2f(530, boxBot1);
-      glVertex2f(530, boxTop1);
-      glVertex2f(270, boxTop1);
+      glVertex2f(270,boxBot1); glVertex2f(530,boxBot1);
+      glVertex2f(530,boxTop1); glVertex2f(270,boxTop1);
     glEnd();
-
-    const float textY1     = boxBot1 + ((boxTop1 - boxBot1) - fontH)*0.5f;
-    drawStrokedText(275, textY1, username);
-
-    if (activeUsername == 1 && showCursor && username.size() < 12) {
-      float cx = 275 + username.size()*10;
-      glColor3f(1,1,1); 
+    float textY1 = boxBot1 + ((boxTop1-boxBot1)-12.0f)*0.5f;
+    drawStrokedText(275,textY1,username);
+    if(activeUsername==1&&showCursor&&username.size()<12) {
+      float cx = 275+username.size()*10;
       glBegin(GL_LINES);
-        glVertex2f(cx,       textY1);
-        glVertex2f(cx, textY1 + fontH);
+        glVertex2f(cx,textY1); glVertex2f(cx,textY1+12.0f);
       glEnd();
     }
-    if (triedToProceedWithoutUsername && username.empty()) {
+    if(triedToProceedWithoutUsername&&username.empty()) {
       glColor3f(1,0,0);
-      drawStrokedText(540, yLabel1 + 5, "*required");
-    }
-    if (usernameSaved &&
-        std::chrono::duration_cast<std::chrono::seconds>(
-          std::chrono::steady_clock::now() - lastSaveTime
-        ).count() < 1)
-    {
-      drawStrokedText(WINDOW_WIDTH*0.5f - 30, 20, "Saved");
+      drawStrokedText(540,yLabel1+5,"*required");
     }
 
-    // —— 2) Player Two Label & Input (if shown) ——
-    if (showSecondUsername) {
-      const float yLabel2  = 430.0f;
-      drawStrokedText(120, yLabel2, "Enter Player Two:");
-
-      const float boxBot2  = 420.0f;
-      const float boxTop2  = 445.0f;
-      glColor3f(1,1,1);
+    // Player Two if shown
+    float yColorLabel, yColorBox;
+    if(showSecondUsername) {
+      float yLabel2 = 430.0f + inputOffset;
+      drawStrokedText(120,yLabel2,"Enter Player Two:");
+      float boxBot2 = 420.0f + inputOffset, boxTop2 = 445.0f + inputOffset;
       glBegin(GL_LINE_LOOP);
-        glVertex2f(270, boxBot2);
-        glVertex2f(530, boxBot2);
-        glVertex2f(530, boxTop2);
-        glVertex2f(270, boxTop2);
+        glVertex2f(270,boxBot2); glVertex2f(530,boxBot2);
+        glVertex2f(530,boxTop2); glVertex2f(270,boxTop2);
       glEnd();
-
-      const float textY2   = boxBot2 + ((boxTop2 - boxBot2) - fontH)*0.5f;
-      drawStrokedText(275, textY2, username2);
-
-      if (activeUsername == 2 && showCursor && username2.size() < 12) {
-        float cx2 = 275 + username2.size()*10;
-        glColor3f(1,1,1);
+      float textY2 = boxBot2 + ((boxTop2-boxBot2)-12.0f)*0.5f;
+      drawStrokedText(275,textY2,username2);
+      if(activeUsername==2&&showCursor&&username2.size()<12) {
+        float cx2 = 275+username2.size()*10;
         glBegin(GL_LINES);
-          glVertex2f(cx2,       textY2);
-          glVertex2f(cx2, textY2 + fontH);
+          glVertex2f(cx2,textY2); glVertex2f(cx2,textY2+12.0f);
         glEnd();
       }
-      if (triedToProceedWithoutUsername2 && username2.empty()) {
+      if(triedToProceedWithoutUsername2&&username2.empty()) {
         glColor3f(1,0,0);
-        drawStrokedText(540, yLabel2 + 5, "*required");
+        drawStrokedText(540,yLabel2+5,"*required");
       }
-      if (username2Saved &&
-          std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::steady_clock::now() - lastSaveTime
-          ).count() < 1)
-      {
-        drawStrokedText(WINDOW_WIDTH*0.5f + 30, 20, "Saved");
-      }
+      // move color picker down
+      yColorLabel = 445.0f - inputOffset;
+      yColorBox   = 435.0f - inputOffset;
+    } else {
+      yColorLabel = 445.0f;
+      yColorBox   = 435.0f;
     }
 
-    // —— 3) Color Picker & Boxes ——
-    const float yColorLabel = 445.0f;
-    drawStrokedText(120, yColorLabel, "Choose Color:");
-
-    const float yColorBox   = 435.0f;
-    int   boxes             = showSecondUsername ? 2 : 1;
-    for (int i = 0; i < boxes; ++i) {
-      // draw directly at the stored position
+    // Color picker & boxes
+    drawStrokedText(120,yColorLabel,"Choose Color:");
+    int boxes = showSecondUsername ? 2 : 1;
+    for(int i=0;i<boxes;++i) {
       auto &box = playerColorBoxes[i];
-      box.y     = yColorBox;   // keep it in sync
-
-      // fill
+      box.y = yColorBox; // [MODIFIED] shift down if needed
       auto &col = playerColors[i];
-      glColor3f(col.r, col.g, col.b);
+      glColor3f(col.r,col.g,col.b);
       glBegin(GL_QUADS);
-        glVertex2f(box.x,           box.y);
-        glVertex2f(box.x + box.width, box.y);
-        glVertex2f(box.x + box.width, box.y + box.height);
-        glVertex2f(box.x,           box.y + box.height);
+        glVertex2f(box.x,box.y);
+        glVertex2f(box.x+box.width,box.y);
+        glVertex2f(box.x+box.width,box.y+box.height);
+        glVertex2f(box.x,box.y+box.height);
       glEnd();
-
-      // hover outline
-      if (hoveredColorBox == i) {
+      if(hoveredColorBox==i) {
         glColor3f(1,1,1); glLineWidth(2);
         glBegin(GL_LINE_LOOP);
-          glVertex2f(box.x,           box.y);
-          glVertex2f(box.x + box.width, box.y);
-          glVertex2f(box.x + box.width, box.y + box.height);
-          glVertex2f(box.x,           box.y + box.height);
+          glVertex2f(box.x,box.y);
+          glVertex2f(box.x+box.width,box.y);
+          glVertex2f(box.x+box.width,box.y+box.height);
+          glVertex2f(box.x,box.y+box.height);
         glEnd();
       }
-
-      // label
-      const char* lbl = (i == 0 ? "Player One" : "Player Two");
-      drawStrokedText(box.x, box.y - 15, lbl, GLUT_BITMAP_HELVETICA_12);
+      drawStrokedText(box.x,box.y-15,(i==0?"Player One":"Player Two"),GLUT_BITMAP_HELVETICA_12);
     }
 
-    // —— 4) Menu Buttons ——
-    for (auto &b : menuButtons) {
-      // no shifting—draw exactly where they are stored
-      drawButton(b);
+    // [MODIFIED] shift buttons down when two username fields
+    float btnOffset = showSecondUsername ? -30.0f : 0.0f;
+    for(auto &b:menuButtons) {
+      Button tmp = b;
+      tmp.y += btnOffset;
+      drawButton(tmp);
     }
 }
 
