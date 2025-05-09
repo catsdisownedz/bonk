@@ -2,6 +2,8 @@
 #include <utility>
 #include <physics/GameObject.h>
 #include <core/InputManager.h>
+#include <string>
+
 using namespace std;
 
 class Player : public GameObject {
@@ -58,6 +60,11 @@ class Player : public GameObject {
         bool onSurface = false;
         double baseMass = 1.0;
         double currentMass = baseMass;
+        string username;
+        void   setName(const std::string& n) { username = n; }
+        const  std::string& getName() const  { return username; }
+        void  drawName() const;
+
       
 };
 

@@ -48,7 +48,7 @@ public:
     void gameSpecialUp(int key,int x,int y);
     void gameTimer();
     void gameReshape(int w, int h);
-
+    std::unordered_map<std::string,std::chrono::steady_clock::time_point> mapLastGifTime;
     // utility
     void toggleCursor();
 
@@ -63,8 +63,14 @@ public:
 
 private:
     // state
-    bool recentlySaved = false;
-    std::string username;
+    bool recentlySaved = false; 
+    string username2;
+    bool username2Saved;
+    bool triedToProceedWithoutUsername2;
+    bool showSecondUsername = false;
+    int  activeUsername  = 1; 
+
+    string username;
     bool usernameSaved               = false;
     bool triedToProceedWithoutUsername = false;
     bool showColorPicker             = false;
@@ -88,6 +94,14 @@ private:
     // buttons
     std::vector<Button> menuButtons;
     std::vector<Button> mapButtons;
+  
+    // — loaded static PNGs for each map button
+    std::map<std::string, GLuint>                       mapImageTex;
+    // — loaded animated GIF frames for each map button
+    std::map<std::string, std::vector<GLuint>>          mapGifFrames;
+    // — current index into that animation
+    std::map<std::string, size_t>                       mapGifFrameIdx;
+
     Scene currentScene = Scene::MAIN_MENU;
 
     // in‐game objects
@@ -101,9 +115,17 @@ private:
     int hoverCol = -1, hoverRow = -1;
 
     // drawing & setup helpers
+    void loadMapImages();
+    void loadMapGifs();
     void drawText(float x,float y,const std::string& s);
     void drawButton(const Button& b);
-    void drawStrokedText(float x,float y,const std::string& txt, void* font = GLUT_BITMAP_HELVETICA_18);
+    void drawStrokedText(float x, float y,
+                     const std::string& txt,
+                     void* font = GLUT_BITMAP_HELVETICA_18,
+                     float r    = 1.f,
+                     float g    = 1.f,
+                     float b    = 1.f);
+    
     void drawBackground();
     void drawMainMenu();
     void drawMapSelection();

@@ -5,6 +5,7 @@
 #include <string>
 #include <ui/GameScene.h>   // your base class for scenes
 #include <vector>
+#include <string>
 using std::vector;
 class Game {
 public:
@@ -34,6 +35,13 @@ public:
     vector<double> playerColor1, playerColor2;
     // query which scene is currently active
     const std::string& getCurrentSceneName() const { return currentSceneName; }
+    void setPlayerNames(const std::string& n1, const std::string& n2) {
+        playerName1 = n1;
+        playerName2 = n2;
+    }
+    const std::string& getPlayerName(int id) const {
+        return (id == 1 ? playerName1 : playerName2);
+    }
 
 private:
     Game();
@@ -52,4 +60,6 @@ private:
     // store last window size so new scenes can reapply projections
     int                  windowW = 800;
     int                  windowH = 600;
+    std::string playerName1;
+    std::string playerName2;
 };

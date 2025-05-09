@@ -12,7 +12,7 @@ public:
     OneVsOne();
     void draw() override;
     vector<Platform>& getPlatforms() override; 
-    vector<Bouncy>& getBouncies();
+    vector<Bouncy>& getBouncies() override;
 
 private:
     vector<Platform> platforms;

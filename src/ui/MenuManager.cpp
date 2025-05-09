@@ -19,7 +19,7 @@ MenuManager::MenuManager()
     mapButtons{
       {100,400,150,150,"OneVsOne"},
       {300,400,150,150,"GangGrounds"},
-      {500,400,150,150,"Swing"},
+      {500,400,150,150,"SwingBattle"},
       {300,200,150,150,"Randomized"}
     }
 {
@@ -28,6 +28,7 @@ MenuManager::MenuManager()
     playerColorBoxes[0] = { startX,        startY, boxW, boxH, "" };
     playerColorBoxes[1] = { startX+boxW+gap, startY, boxW, boxH, "" };
 }
+
 
 void MenuManager::generateRandomPlayerColors() {
     std::random_device rd;
@@ -38,7 +39,11 @@ void MenuManager::generateRandomPlayerColors() {
 }
 
 void MenuManager::init() {
-    glClearColor(0,0,0,1);
+    glClearColor(0,0,0,1);std::string username2;
+bool        username2Saved;
+bool        triedToProceedWithoutUsername2;
+bool        showSecondUsername = false;
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT);
@@ -47,6 +52,15 @@ void MenuManager::init() {
     initButtons();
     soundPlayer.loadSound("click","assets/audio/click.wav");
     loadGifFrames("assets/gif");
+    loadMapImages();
+    loadMapGifs();
+    auto now = std::chrono::steady_clock::now();
+    for (auto &b : mapButtons) {
+      mapLastGifTime[b.label] = now;
+    }
+    currentFrame   = 0;
+    lastSaveTime   = now;
+
     currentFrame = 0;
     lastSaveTime = std::chrono::steady_clock::now();
 }
@@ -99,6 +113,13 @@ void MenuManager::onEnter() {
     username.clear();
     usernameSaved = false;
     triedToProceedWithoutUsername = false;
+
+    username2.clear();
+    username2Saved = false;
+    triedToProceedWithoutUsername2 = false;
+    showSecondUsername = false; 
+    activeUsername     = 1;
+
     showColorPicker = false;
     showCursor = true;
     highlightColorBox = false;
@@ -108,8 +129,21 @@ void MenuManager::onEnter() {
 }
 
 void MenuManager::update() {
-    if (!gifFrames.empty())
-        currentFrame = (currentFrame + 1) % gifFrames.size();
+    if (!gifFrames.empty())  currentFrame = (currentFrame + 1) % gifFrames.size();
+
+    // advance only hovered map‐button animations
+  auto now = std::chrono::steady_clock::now();
+    const auto frameDuration = std::chrono::milliseconds(100);  // 10 fps
+    for (auto &b : mapButtons) {
+      if (b.highlighted && !mapGifFrames[b.label].empty()) {
+        auto &lastTime = mapLastGifTime[b.label];
+        if (now - lastTime > frameDuration) {
+          auto &idx = mapGifFrameIdx[b.label];
+          idx = (idx + 1) % mapGifFrames[b.label].size();
+          lastTime = now;
+        }
+      }
+    }
 }
 
 void MenuManager::render() {
@@ -123,28 +157,35 @@ void MenuManager::render() {
 
     drawColorPicker();
 
-    // “Saved” indicator for 1s after typing
+    bool curSaved = (activeUsername == 1 ? usernameSaved : username2Saved);
     auto now = std::chrono::steady_clock::now();
-    if (usernameSaved &&
-        std::chrono::duration_cast<std::chrono::seconds>(now - lastSaveTime).count() < 1)
-    {
-        drawStrokedText(WINDOW_WIDTH*0.5f - 30, 20, "Saved");
+    if (curSaved && std::chrono::duration_cast<std::chrono::seconds>(now - lastSaveTime).count() < 2) {
+        auto &col = (activeUsername == 1 ? playerColors[0] : playerColors[1]);
+        drawStrokedText(WINDOW_WIDTH*0.5f - 30, 20, "Saved", GLUT_BITMAP_HELVETICA_18,
+                        col.r, col.g, col.b);  // [MODIFIED] pass player color
     }
 
     glutSwapBuffers();
 }
 
 void MenuManager::handleKeyboard(unsigned char key,int x,int y) {
-    if (key == 8 && !username.empty()) {
-        username.pop_back();
-    } else if (username.size() < 12 && isalnum(key)) {
-        username.push_back(key);
+    // choose which field we’re editing:
+    std::string &curName       = (activeUsername == 1 ? username  : username2);
+    bool        &curSaved      = (activeUsername == 1 ? usernameSaved  : username2Saved);
+    bool        &curTriedFlag  = (activeUsername == 1 ? triedToProceedWithoutUsername  : triedToProceedWithoutUsername2);
+
+    if (key == 8) {               // Backspace
+        if (!curName.empty()) curName.pop_back();
     }
-    // mark saved and reset timer
-    usernameSaved   = true;
-    triedToProceedWithoutUsername = !usernameSaved;
-    lastSaveTime    = std::chrono::steady_clock::now();
+    else if (isalnum(key) && curName.size() < 12) {
+        curName.push_back(key);
+    }
+    // mark saved / “*required”
+    curSaved     = true;
+    curTriedFlag = !curSaved;
+    lastSaveTime = std::chrono::steady_clock::now();
 }
+
 
 
 void MenuManager::handleKeyboardUp(unsigned char /*key*/,int/*x*/,int/*y*/) {
@@ -152,18 +193,49 @@ void MenuManager::handleKeyboardUp(unsigned char /*key*/,int/*x*/,int/*y*/) {
 }
 
 void MenuManager::handleMouse(int button,int state,int x,int y) {
-    if (button!=GLUT_LEFT_BUTTON || state!=GLUT_DOWN) return;
+    if (button != GLUT_LEFT_BUTTON || state != GLUT_DOWN) return;
     y = WINDOW_HEIGHT - y;
 
-    // color‐picker interaction
-    // in MenuManager::handleMouse(...)
+    if (currentScene == Scene::MAIN_MENU) {
+        // [ADDED] Allow clicking on username fields to focus/re-edit
+        float inputOffset = showSecondUsername ? 30.0f : 0.0f;
+        // Player One field bounds
+        float bot1 = 480.0f + inputOffset, top1 = 505.0f + inputOffset;
+        if (x >= 270 && x <= 530 && y >= bot1 && y <= top1) {
+            activeUsername = 1;
+            showCursor = true;
+            soundPlayer.playSound("click");
+            return;
+        }
+        // Player Two field bounds (if shown)
+        if (showSecondUsername) {
+            float bot2 = 420.0f + inputOffset, top2 = 445.0f + inputOffset;
+            if (x >= 270 && x <= 530 && y >= bot2 && y <= top2) {
+                activeUsername = 2;
+                showCursor = true;
+                soundPlayer.playSound("click");
+                return;
+            }
+        }
+
+        int boxes = showSecondUsername ? 2 : 1;
+        for (int i = 0; i < boxes; ++i) {
+            auto &b = playerColorBoxes[i];
+            if (x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height) {
+                editingColorBox = i;
+                showColorPicker = true;
+                soundPlayer.playSound("click");
+                return;
+            }
+        }
+    }
+
+    // [KEEP] Original color-picker and menu/map button logic:
     if (showColorPicker) {
-        // compute which cell was clicked
         float cell = PICKER_SIZE / float(PICKER_CELLS);
         float sx   = WINDOW_WIDTH - PICKER_MARGIN - PICKER_SIZE;
         float sy   = WINDOW_HEIGHT - PICKER_MARGIN - PICKER_SIZE;
         float dx   = x - sx, dy = y - sy;
-
         if (dx >= 0 && dy >= 0 && dx < PICKER_SIZE && dy < PICKER_SIZE) {
             int col = int(dx / cell), row = int(dy / cell);
             float h = col / float(PICKER_CELLS - 1);
@@ -171,74 +243,45 @@ void MenuManager::handleMouse(int button,int state,int x,int y) {
             int i = int(h * 6);
             float f = (h*6) - i;
             float p = 0.0f, q = v * (1 - f), t = v * (1 - (1 - f));
-
-            // compute RGB
             float r, g, b;
             switch (i % 6) {
-            case 0: r = v; g = t; b = p; break;
-            case 1: r = q; g = v; b = p; break;
-            case 2: r = p; g = v; b = t; break;
-            case 3: r = p; g = q; b = v; break;
-            case 4: r = t; g = p; b = v; break;
-            default:r = v; g = p; b = q; break;
+            case 0: r=v; g=t; b=p; break;
+            case 1: r=q; g=v; b=p; break;
+            case 2: r=p; g=v; b=t; break;
+            case 3: r=p; g=q; b=v; break;
+            case 4: r=t; g=p; b=v; break;
+            default: r=v; g=p; b=q; break;
             }
-
-            // **assign into the correct player slot**
-            playerColors[editingColorBox] = { r, g, b };
-
-            // close the picker
+            playerColors[editingColorBox] = {r,g,b};
             showColorPicker = false;
+            return;
         }
         return;
     }
-
-    // if we clicked one of the two color boxes, open picker for that box
-  if (currentScene == Scene::MAIN_MENU) {
-      for (int i = 0; i < 2; ++i) {
-        auto &b = playerColorBoxes[i];
-        if (x >= b.x && x <= b.x + b.width
-         && y >= b.y && y <= b.y + b.height)
-        {
-          editingColorBox = i;
-          soundPlayer.playSound("click");
-          showColorPicker = true;
-          return;
-        }
-      }
-    }
-
-    // toggle picker
-    if (currentScene==Scene::MAIN_MENU
-     && x>=300 && x<=330 && y>=435 && y<=465)
-    {
-        soundPlayer.playSound("click");
-        showColorPicker = !showColorPicker;
-        return;
-    }
-
-    if (currentScene==Scene::MAIN_MENU) {
-        // main-menu buttons
+    if (currentScene == Scene::MAIN_MENU) {
+        // reveal second username or proceed
         for (auto &b : menuButtons) {
-            if (x>=b.x && x<=b.x+b.width
-             && y>=b.y && y<=b.y+b.height)
-            {
-                if (!usernameSaved) {
-                    triedToProceedWithoutUsername = true;
+            if (x>=b.x&&x<=b.x+b.width&&y>=b.y&&y<=b.y+b.height) {
+                if (b.label=="Local Player") {
+                    if (!showSecondUsername) {
+                        showSecondUsername = true;
+                        activeUsername = 2;
+                    } else {
+                        if (username2Saved && !username2.empty()) {
+                            currentScene = Scene::MAP_SELECTION;
+                        } else {
+                            triedToProceedWithoutUsername2 = true;
+                        }
+                    }
                     return;
                 }
                 if (b.label=="Quit") exit(0);
-                if (b.label=="Local Player") {
-                    currentScene = Scene::MAP_SELECTION;
-                    return;
-                }
+                if (!usernameSaved) { triedToProceedWithoutUsername = true; return; }
             }
         }
     } else {
-        // map-selection
-        for (auto &b : mapButtons) {
-            if (x>=b.x && x<=b.x+b.width
-             && y>=b.y && y<=b.y+b.height)
-            {
+        for (auto &b: mapButtons) {
+            if (x>=b.x&&x<=b.x+b.width&&y>=b.y&&y<=b.y+b.height) {
                 launchGame(b.label);
                 return;
             }
@@ -293,6 +336,9 @@ void MenuManager::onReshape(int w,int h) {
 void MenuManager::launchGame(const std::string& mapName) {
     selectedMap = mapName;
     auto &G = Game::instance();
+    G.setPlayerNames(username,
+                     showSecondUsername ? username2 : "");
+    
     G.playerColor1 = { playerColors[0].r,
                        playerColors[0].g,
                        playerColors[0].b };
@@ -310,21 +356,25 @@ void MenuManager::drawText(float x,float y,const std::string& txt) {
     for(char c: txt) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
 }
 
-void MenuManager::drawStrokedText(float x,float y,const std::string& txt, void* font) {
-    glColor3f(0,0,0);
-    for (int dx=-1; dx<=1; ++dx) {
-      for (int dy=-1; dy<=1; ++dy) {
-        if (dx||dy) {
-          glRasterPos2f(x+dx, y+dy);
-          for (char c: txt) glutBitmapCharacter(font, c);
+void MenuManager::drawStrokedText(float x, float y,
+                                  const std::string &txt,
+                                  void *font,
+                                  float r, float g, float b) {
+    // draw black outline
+    glColor3f(0, 0, 0);
+    for (int dx = -1; dx <= 1; ++dx) {
+        for (int dy = -1; dy <= 1; ++dy) {
+            if (dx || dy) {
+                glRasterPos2f(x + dx, y + dy);
+                for (char c : txt) glutBitmapCharacter(font, c);
+            }
         }
-      }
     }
-    glColor3f(1,1,1);
-    glRasterPos2f(x,y);
-    for (char c: txt) glutBitmapCharacter(font, c);
+    // draw fill in given color
+    glColor3f(r, g, b);
+    glRasterPos2f(x, y);
+    for (char c : txt) glutBitmapCharacter(font, c);
 }
-
 
 void MenuManager::drawButton(const Button& b) {
     if (b.highlighted) {
@@ -362,87 +412,182 @@ void MenuManager::drawBackground() {
     glDisable(GL_TEXTURE_2D);
 }
 
+// -----------------------------
+// 2) drawMainMenu()
+// -----------------------------
 void MenuManager::drawMainMenu() {
-    // 1) “Enter Username:” label
-    drawStrokedText(120, 490, "Enter Username:");
+    glClear(GL_COLOR_BUFFER_BIT);
+    drawBackground(); 
+    // shift elements when two username fields
+    float inputOffset = showSecondUsername ? 30.0f : 0.0f;
 
-    // 2) Username input box
-    glColor3f(1,1,1);
-    glLineWidth(1);
+    // Player One label & input
+    float yLabel1 = 490.0f + inputOffset;
+    drawStrokedText(120,yLabel1,"Enter Player One:");
+    float boxBot1 = 480.0f + inputOffset, boxTop1 = 505.0f + inputOffset;
+    glColor3f(1,1,1); glLineWidth(1);
     glBegin(GL_LINE_LOOP);
-      glVertex2f(270,480);
-      glVertex2f(530,480);
-      glVertex2f(530,505);
-      glVertex2f(270,505);
+      glVertex2f(270,boxBot1); glVertex2f(530,boxBot1);
+      glVertex2f(530,boxTop1); glVertex2f(270,boxTop1);
     glEnd();
-
-    // 3) Draw the current username text
-    const float boxBottom = 480, boxTop = 505, fontH = 12;
-    float textY = boxBottom + ((boxTop - boxBottom) - fontH)*0.5f;
-    drawStrokedText(275, textY, username);
-
-    // 4) Blinking cursor
-    if (showCursor && username.size() < 12) {
-      float cx = 275 + username.size()*10;
-      glColor3f(1,1,1);
-      glLineWidth(1);
+    float textY1 = boxBot1 + ((boxTop1-boxBot1)-12.0f)*0.5f;
+    drawStrokedText(275,textY1,username);
+    if(activeUsername==1&&showCursor&&username.size()<12) {
+      float cx = 275+username.size()*10;
       glBegin(GL_LINES);
-        glVertex2f(cx,       textY);
-        glVertex2f(cx, textY + fontH);
+        glVertex2f(cx,textY1); glVertex2f(cx,textY1+12.0f);
       glEnd();
     }
-
-    // 5) “*required” if username empty
-    if (triedToProceedWithoutUsername && username.empty()) {
+    if(triedToProceedWithoutUsername&&username.empty()) {
       glColor3f(1,0,0);
-      drawStrokedText(540, 495, "*required");
+      drawStrokedText(540,yLabel1+5,"*required");
     }
 
-    // 6) “Choose Color:” label
-    drawStrokedText(120, 445, "Choose Color:");
-
-    // 7) Player One color box + label
-    const float boxW = 30, boxH = 30;
-    const float startX = 300, startY = 435;
-    const float gap    = 50;
-
-    for (int i = 0; i < 2; ++i) {
-    auto &col = playerColors[i];
-    auto &b   = playerColorBoxes[i];
-    glColor3f(col.r, col.g, col.b);
-    glBegin(GL_QUADS);
-        glVertex2f(b.x,      b.y);
-        glVertex2f(b.x+b.width, b.y);
-        glVertex2f(b.x+b.width, b.y+b.height);
-        glVertex2f(b.x,      b.y+b.height);
-    glEnd();
-
-    // border on hover
-    if (hoveredColorBox == i) {
-        glColor3f(1,1,1);
-        glLineWidth(2);
-        glBegin(GL_LINE_LOOP);
-        glVertex2f(b.x,      b.y);
-        glVertex2f(b.x+b.width, b.y);
-        glVertex2f(b.x+b.width, b.y+b.height);
-        glVertex2f(b.x,      b.y+b.height);
+    // Player Two if shown
+    float yColorLabel, yColorBox;
+    if(showSecondUsername) {
+      float yLabel2 = 430.0f + inputOffset;
+      drawStrokedText(120,yLabel2,"Enter Player Two:");
+      float boxBot2 = 420.0f + inputOffset, boxTop2 = 445.0f + inputOffset;
+      glBegin(GL_LINE_LOOP);
+        glVertex2f(270,boxBot2); glVertex2f(530,boxBot2);
+        glVertex2f(530,boxTop2); glVertex2f(270,boxTop2);
+      glEnd();
+      float textY2 = boxBot2 + ((boxTop2-boxBot2)-12.0f)*0.5f;
+      drawStrokedText(275,textY2,username2);
+      if(activeUsername==2&&showCursor&&username2.size()<12) {
+        float cx2 = 275+username2.size()*10;
+        glBegin(GL_LINES);
+          glVertex2f(cx2,textY2); glVertex2f(cx2,textY2+12.0f);
         glEnd();
+      }
+      if(triedToProceedWithoutUsername2&&username2.empty()) {
+        glColor3f(1,0,0);
+        drawStrokedText(540,yLabel2+5,"*required");
+      }
+      // move color picker down
+      yColorLabel = 445.0f - inputOffset;
+      yColorBox   = 435.0f - inputOffset;
+    } else {
+      yColorLabel = 445.0f;
+      yColorBox   = 435.0f;
     }
 
-    // label underneath
-    const char* lbl = (i==0 ? "Player One" : "Player Two");
-    drawStrokedText(b.x, b.y - 15, lbl, GLUT_BITMAP_HELVETICA_12);
+    // Color picker & boxes
+    drawStrokedText(120,yColorLabel,"Choose Color:");
+    int boxes = showSecondUsername ? 2 : 1;
+    for(int i=0;i<boxes;++i) {
+      auto &box = playerColorBoxes[i];
+      box.y = yColorBox; // [MODIFIED] shift down if needed
+      auto &col = playerColors[i];
+      glColor3f(col.r,col.g,col.b);
+      glBegin(GL_QUADS);
+        glVertex2f(box.x,box.y);
+        glVertex2f(box.x+box.width,box.y);
+        glVertex2f(box.x+box.width,box.y+box.height);
+        glVertex2f(box.x,box.y+box.height);
+      glEnd();
+      if(hoveredColorBox==i) {
+        glColor3f(1,1,1); glLineWidth(2);
+        glBegin(GL_LINE_LOOP);
+          glVertex2f(box.x,box.y);
+          glVertex2f(box.x+box.width,box.y);
+          glVertex2f(box.x+box.width,box.y+box.height);
+          glVertex2f(box.x,box.y+box.height);
+        glEnd();
+      }
+      drawStrokedText(box.x,box.y-15,(i==0?"Player One":"Player Two"),GLUT_BITMAP_HELVETICA_12);
     }
 
-    // 9) Menu buttons
-    for (auto &b : menuButtons) {
-      drawButton(b);
+    // [MODIFIED] shift buttons down when two username fields
+    float btnOffset = showSecondUsername ? -30.0f : 0.0f;
+    for(auto &b:menuButtons) {
+      Button tmp = b;
+      tmp.y += btnOffset;
+      drawButton(tmp);
     }
 }
+
 
 void MenuManager::drawMapSelection() {
-    for (auto &b : mapButtons) drawButton(b);
+    const float startX     = 200;
+    const float startY     = 350;
+    const float gapX       = 250;
+    const float gapY       = 200;
+    const float textMargin = 10;          // gap between bottom of box and text
+    void*  font            = GLUT_BITMAP_HELVETICA_18;
+
+    int idx = 0;
+    for (int row = 0; row < 2; ++row) {
+        for (int col = 0; col < 2; ++col, ++idx) {
+            auto &b = mapButtons[idx];
+            // 1) compute box position
+            b.x = startX + col * gapX;
+            b.y = startY - row * gapY;
+            float x = b.x, y = b.y, w = b.width, h = b.height;
+
+            // 2) pick texture
+            GLuint tex = 0;
+            if (b.highlighted && !mapGifFrames[b.label].empty()) {
+                tex = mapGifFrames[b.label][mapGifFrameIdx[b.label]];
+            } else if (mapImageTex.count(b.label)) {
+                tex = mapImageTex[b.label];
+            }
+
+            // 3) draw box (textured or fallback brown)
+            if (tex) {
+                glEnable(GL_TEXTURE_2D);
+                glBindTexture(GL_TEXTURE_2D, tex);
+                glColor3f(1,1,1);
+                glBegin(GL_QUADS);
+                  glTexCoord2f(0,0); glVertex2f(x,   y);
+                  glTexCoord2f(1,0); glVertex2f(x+w, y);
+                  glTexCoord2f(1,1); glVertex2f(x+w, y+h);
+                  glTexCoord2f(0,1); glVertex2f(x,   y+h);
+                glEnd();
+                glDisable(GL_TEXTURE_2D);
+            } else {
+                glColor3f(0.4f,0.25f,0.15f);
+                glBegin(GL_QUADS);
+                  glVertex2f(x,   y);
+                  glVertex2f(x+w, y);
+                  glVertex2f(x+w, y+h);
+                  glVertex2f(x,   y+h);
+                glEnd();
+            }
+
+            // 4) pink highlight border
+            if (b.highlighted) {
+                glColor3f(1,0.8f,0.85f);
+                glLineWidth(3);
+                glBegin(GL_LINE_LOOP);
+                  glVertex2f(x,   y);
+                  glVertex2f(x+w, y);
+                  glVertex2f(x+w, y+h);
+                  glVertex2f(x,   y+h);
+                glEnd();
+            }
+
+            // 5) measure text width, center under box
+            int textWidth = 0;
+            for (char c: b.label) {
+                textWidth += glutBitmapWidth(font, c);
+            }
+            float textX = x + (w - textWidth) * 0.5f;
+            float textY = y - textMargin;
+
+            // 6) draw white stroked label
+            drawStrokedText(
+                textX, textY,
+                b.label,
+                font
+                // r,g,b default to (1,1,1)
+            );
+        }
+    }
 }
+
+
 
 void MenuManager::drawColorPicker() {
     if (!showColorPicker) return;
@@ -508,4 +653,66 @@ void MenuManager::drawColorPicker() {
         }
       }
     }
+}
+
+
+void MenuManager::loadMapImages() {
+    stbi_set_flip_vertically_on_load(true);
+    for (auto &b : mapButtons) {
+        std::string path = "assets/pfp/" + b.label + ".png";
+        int w,h,ch;
+        auto data = stbi_load(path.c_str(), &w, &h, &ch, STBI_rgb_alpha);
+        if (!data) continue;
+        GLuint tex;
+        glGenTextures(1,&tex);
+        glBindTexture(GL_TEXTURE_2D, tex);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,data);
+        stbi_image_free(data);
+        mapImageTex[b.label] = tex;
+    }
+}
+
+void MenuManager::loadMapGifs() {
+  for (auto &b : mapButtons) {
+    // 1) purge any old textures
+    for (auto &tex : mapGifFrames[b.label])
+      glDeleteTextures(1, &tex);
+    mapGifFrames[b.label].clear();
+
+    // 2) build & sort your file list…
+    std::string dir = "assets/" + b.label;
+    std::vector<std::pair<int,fs::path>> files;
+    std::regex pat(R"(frame_(\d+)\.png)");       // ← tight regex
+    for (auto &e : fs::directory_iterator(dir)) {
+      std::smatch m;
+      auto fn = e.path().filename().string();
+      if (std::regex_match(fn, m, pat))
+        files.emplace_back(std::stoi(m[1].str()), e.path());
+    }
+    std::sort(files.begin(), files.end(),
+              [](auto &a, auto &b){ return a.first < b.first; });
+
+    // 3) now load exactly those frames
+    stbi_set_flip_vertically_on_load(true);
+    for (auto &pr : files) {
+      int w,h,ch;
+      auto data = stbi_load(pr.second.string().c_str(),
+                            &w,&h,&ch,STBI_rgb_alpha);
+      if (!data) continue;
+      GLuint tex;
+      glGenTextures(1,&tex);
+      glBindTexture(GL_TEXTURE_2D, tex);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,data);
+      stbi_image_free(data);
+      mapGifFrames[b.label].push_back(tex);
+    }
+
+    // 4) reset your index & timestamp
+    mapGifFrameIdx[b.label]  = 0;
+    mapLastGifTime[b.label]  = std::chrono::steady_clock::now();
+  }
 }
