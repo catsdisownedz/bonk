@@ -52,6 +52,15 @@ bool        showSecondUsername = false;
     initButtons();
     soundPlayer.loadSound("click","assets/audio/click.wav");
     loadGifFrames("assets/gif");
+    loadMapImages();
+    loadMapGifs();
+    auto now = std::chrono::steady_clock::now();
+    for (auto &b : mapButtons) {
+      mapLastGifTime[b.label] = now;
+    }
+    currentFrame   = 0;
+    lastSaveTime   = now;
+
     currentFrame = 0;
     lastSaveTime = std::chrono::steady_clock::now();
 }
@@ -120,8 +129,21 @@ void MenuManager::onEnter() {
 }
 
 void MenuManager::update() {
-    if (!gifFrames.empty())
-        currentFrame = (currentFrame + 1) % gifFrames.size();
+    if (!gifFrames.empty())  currentFrame = (currentFrame + 1) % gifFrames.size();
+
+    // advance only hovered map‐button animations
+  auto now = std::chrono::steady_clock::now();
+    const auto frameDuration = std::chrono::milliseconds(100);  // 10 fps
+    for (auto &b : mapButtons) {
+      if (b.highlighted && !mapGifFrames[b.label].empty()) {
+        auto &lastTime = mapLastGifTime[b.label];
+        if (now - lastTime > frameDuration) {
+          auto &idx = mapGifFrameIdx[b.label];
+          idx = (idx + 1) % mapGifFrames[b.label].size();
+          lastTime = now;
+        }
+      }
+    }
 }
 
 void MenuManager::render() {
@@ -488,8 +510,84 @@ void MenuManager::drawMainMenu() {
 
 
 void MenuManager::drawMapSelection() {
-    for (auto &b : mapButtons) drawButton(b);
+    const float startX     = 200;
+    const float startY     = 350;
+    const float gapX       = 250;
+    const float gapY       = 200;
+    const float textMargin = 10;          // gap between bottom of box and text
+    void*  font            = GLUT_BITMAP_HELVETICA_18;
+
+    int idx = 0;
+    for (int row = 0; row < 2; ++row) {
+        for (int col = 0; col < 2; ++col, ++idx) {
+            auto &b = mapButtons[idx];
+            // 1) compute box position
+            b.x = startX + col * gapX;
+            b.y = startY - row * gapY;
+            float x = b.x, y = b.y, w = b.width, h = b.height;
+
+            // 2) pick texture
+            GLuint tex = 0;
+            if (b.highlighted && !mapGifFrames[b.label].empty()) {
+                tex = mapGifFrames[b.label][mapGifFrameIdx[b.label]];
+            } else if (mapImageTex.count(b.label)) {
+                tex = mapImageTex[b.label];
+            }
+
+            // 3) draw box (textured or fallback brown)
+            if (tex) {
+                glEnable(GL_TEXTURE_2D);
+                glBindTexture(GL_TEXTURE_2D, tex);
+                glColor3f(1,1,1);
+                glBegin(GL_QUADS);
+                  glTexCoord2f(0,0); glVertex2f(x,   y);
+                  glTexCoord2f(1,0); glVertex2f(x+w, y);
+                  glTexCoord2f(1,1); glVertex2f(x+w, y+h);
+                  glTexCoord2f(0,1); glVertex2f(x,   y+h);
+                glEnd();
+                glDisable(GL_TEXTURE_2D);
+            } else {
+                glColor3f(0.4f,0.25f,0.15f);
+                glBegin(GL_QUADS);
+                  glVertex2f(x,   y);
+                  glVertex2f(x+w, y);
+                  glVertex2f(x+w, y+h);
+                  glVertex2f(x,   y+h);
+                glEnd();
+            }
+
+            // 4) pink highlight border
+            if (b.highlighted) {
+                glColor3f(1,0.8f,0.85f);
+                glLineWidth(3);
+                glBegin(GL_LINE_LOOP);
+                  glVertex2f(x,   y);
+                  glVertex2f(x+w, y);
+                  glVertex2f(x+w, y+h);
+                  glVertex2f(x,   y+h);
+                glEnd();
+            }
+
+            // 5) measure text width, center under box
+            int textWidth = 0;
+            for (char c: b.label) {
+                textWidth += glutBitmapWidth(font, c);
+            }
+            float textX = x + (w - textWidth) * 0.5f;
+            float textY = y - textMargin;
+
+            // 6) draw white stroked label
+            drawStrokedText(
+                textX, textY,
+                b.label,
+                font
+                // r,g,b default to (1,1,1)
+            );
+        }
+    }
 }
+
+
 
 void MenuManager::drawColorPicker() {
     if (!showColorPicker) return;
@@ -555,4 +653,66 @@ void MenuManager::drawColorPicker() {
         }
       }
     }
+}
+
+
+void MenuManager::loadMapImages() {
+    stbi_set_flip_vertically_on_load(true);
+    for (auto &b : mapButtons) {
+        std::string path = "assets/pfp/" + b.label + ".png";
+        int w,h,ch;
+        auto data = stbi_load(path.c_str(), &w, &h, &ch, STBI_rgb_alpha);
+        if (!data) continue;
+        GLuint tex;
+        glGenTextures(1,&tex);
+        glBindTexture(GL_TEXTURE_2D, tex);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,data);
+        stbi_image_free(data);
+        mapImageTex[b.label] = tex;
+    }
+}
+
+void MenuManager::loadMapGifs() {
+  for (auto &b : mapButtons) {
+    // 1) purge any old textures
+    for (auto &tex : mapGifFrames[b.label])
+      glDeleteTextures(1, &tex);
+    mapGifFrames[b.label].clear();
+
+    // 2) build & sort your file list…
+    std::string dir = "assets/" + b.label;
+    std::vector<std::pair<int,fs::path>> files;
+    std::regex pat(R"(frame_(\d+)\.png)");       // ← tight regex
+    for (auto &e : fs::directory_iterator(dir)) {
+      std::smatch m;
+      auto fn = e.path().filename().string();
+      if (std::regex_match(fn, m, pat))
+        files.emplace_back(std::stoi(m[1].str()), e.path());
+    }
+    std::sort(files.begin(), files.end(),
+              [](auto &a, auto &b){ return a.first < b.first; });
+
+    // 3) now load exactly those frames
+    stbi_set_flip_vertically_on_load(true);
+    for (auto &pr : files) {
+      int w,h,ch;
+      auto data = stbi_load(pr.second.string().c_str(),
+                            &w,&h,&ch,STBI_rgb_alpha);
+      if (!data) continue;
+      GLuint tex;
+      glGenTextures(1,&tex);
+      glBindTexture(GL_TEXTURE_2D, tex);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,data);
+      stbi_image_free(data);
+      mapGifFrames[b.label].push_back(tex);
+    }
+
+    // 4) reset your index & timestamp
+    mapGifFrameIdx[b.label]  = 0;
+    mapLastGifTime[b.label]  = std::chrono::steady_clock::now();
+  }
 }
