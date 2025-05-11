@@ -18,9 +18,9 @@ public:
 
     void update() override {
         mgr.update();
-        auto map = mgr.getSelectedMap();
-        if (!map.empty()) {
-            Game::instance().changeScene(map);
+        auto _map = mgr.getSelectedMap();
+        if (!_map.empty()) {
+            Game::instance().changeScene(_map);
         }
     }
     void render() override {

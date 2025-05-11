@@ -26,6 +26,7 @@ class PhysicsEngine {
         bool checkBouncyCollision(Player &player , Bouncy &bouncy);
         void resolveBouncyCollision(Player &player , Bouncy &bouncy);
         double applyGravity(Player& player);
+        int checkGameOver(Player &player);
         bool checkSwingCollision(Player& player, Swing& swing);
         void resolveSwingCollision(Player& player, Swing& swing);
 

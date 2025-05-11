@@ -3,8 +3,10 @@
 #include <physics/GameObject.h>
 #include <core/InputManager.h>
 #include <string>
+#include <ui/ColorOption.h>
 
 using namespace std;
+//using GameObject::setColor;
 
 class Player : public GameObject {
     public:
@@ -64,7 +66,19 @@ class Player : public GameObject {
         void   setName(const std::string& n) { username = n; }
         const  std::string& getName() const  { return username; }
         void  drawName() const;
+        
+        const ColorOption& getColorOption() const {
+            return m_color;
+        }
 
-      
+        // call this once after you read the RGB triple from the Menu:
+        void setColorOption(const ColorOption &c) {
+            // 1) store it for Player::draw() and GameOver
+            m_color = c;
+            // 2) keep the base‐class vector<double> in sync
+            GameObject::setColor({c.r, c.g, c.b});
+        }
+    private: 
+        ColorOption m_color;
 };
 

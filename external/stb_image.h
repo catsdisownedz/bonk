@@ -2814,7 +2814,7 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
 
    // 16bit 8x8 transpose
    {
-// these three map to a single VTRN.16, VTRN.32, and VSWP, respectively.
+// these three _map to a single VTRN.16, VTRN.32, and VSWP, respectively.
 // whether compilers actually get this is another story, sadly.
 #define dct_trn16(x, y) { int16x8x2_t t = vtrnq_s16(x, y); x = t.val[0]; y = t.val[1]; }
 #define dct_trn32(x, y) { int32x4x2_t t = vtrnq_s32(vreinterpretq_s32_s16(x), vreinterpretq_s32_s16(y)); x = vreinterpretq_s16_s32(t.val[0]); y = vreinterpretq_s16_s32(t.val[1]); }

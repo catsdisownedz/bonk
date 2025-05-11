@@ -4,7 +4,7 @@
 #include <ui/Map.h>
 #include <vector>
 #include <memory>
-
+#include <map>
 class Renderer {
 
     public:
@@ -18,11 +18,22 @@ class Renderer {
         void removePlayer(int id);
         void setMap(Map* newMap);
         void update();
+        void displayGameOverScreen(int loserPlayer);
 
     private:
         vector<Player> players;
         vector<GameObject> platforms;
         vector<GameObject> bouncies;
         vector<GameObject> movingObjects;
-        Map* map;
+        Map* _map;
+         bool   _gameOver    = false;
+        int    _winnerId    = -1;
+        std::map<int,int> winCounts;       // player-id → total wins
+
+        // helpers:
+        void triggerGameOver(int loserId);
+        void drawGameOverOverlay();
+        void drawCircle(float cx, float cy, float r);
+        void drawText(float x, float y, const std::string &s);
+
 };

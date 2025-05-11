@@ -52,7 +52,7 @@ public:
     // utility
     void toggleCursor();
 
-    // after map‐click
+    // after _map‐click
     std::string getSelectedMap() const { return selectedMap; }
     // index 0 = Player One box, 1 = Player Two box
     std::array<Button,2>      playerColorBoxes;
