@@ -76,15 +76,14 @@ void Renderer::display() {
             player.isSpaceBarPressed = false;
         }
         player.display();
-        player.drawName(); 
-        //cout<<"count:"<<players.size()<<"\n";
-        
-        // player's center
-        // auto pos = player.getPosition();
+        player.drawName();
+
+        // debug: draw center point
+        auto pos = player.getPosition();
         // glPointSize(8.0f);
-        // glColor3f(1.0f, 1.0f, 0.0f);
+        // glColor3f(1,1,0);
         // glBegin(GL_POINTS);
-        //     glVertex2f(pos.first, pos.second);
+        //   glVertex2f(pos.first, pos.second);
         // glEnd();
     }
 

@@ -3,24 +3,40 @@
 #include <GL/glut.h>
 #include <ui/GameOver.h>
 #include <ui/Game.h>
-#include <cmath>
+#include <algorithm>
+#include <cctype>
 #include <string>
+#include <cmath>
+
 
 GameOver::GameOver() { }
 
 void GameOver::draw(int winningPlayer) {
     // 1) Enable alpha blending
+    glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // 2) Draw a full‐screen, semi-transparent black quad
-    glColor4f(0.0f, 0.0f, 0.0f, 0.6f);
-    glBegin(GL_QUADS);
-      glVertex2f(-1.0f, -1.0f);
-      glVertex2f( 1.0f, -1.0f);
-      glVertex2f( 1.0f,  1.0f);
-      glVertex2f(-1.0f,  1.0f);
-    glEnd();
+     glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+      glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+      glLoadIdentity();
+
+      glColor4f(0.0f, 0.0f, 0.0f, 0.3f);  // 30% black
+      glBegin(GL_QUADS);
+        glVertex2f(-1, -1);
+        glVertex2f( 1, -1);
+        glVertex2f( 1,  1);
+        glVertex2f(-1,  1);
+      glEnd();
+
+    glPopMatrix();              // restore MODELVIEW
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();              // restore PROJECTION
+    glMatrixMode(GL_MODELVIEW);
 
     // 3) Draw the winner’s color circle
     auto& winner = Game::instance().getPlayerById(winningPlayer);
@@ -40,12 +56,27 @@ void GameOver::draw(int winningPlayer) {
       }
     glEnd();
 
-    // 4) Draw "USERNAME WINS!" in white, just under the circle
-    glColor3f(1, 1, 1);
-    renderText(cx - 0.4f,
-               cy - 0.2f,
-               winner.getName() + " WINS!",
-               GLUT_BITMAP_HELVETICA_18);
+   //
+    // 4) Uppercase, centered “NAME WINS!”
+    //
+    std::string name = winner.getName();
+    std::transform(name.begin(), name.end(), name.begin(),
+                   [](unsigned char c){ return std::toupper(c); });
+    name += " WINS!";
+
+    // measure in pixels
+    int winW = glutGet(GLUT_WINDOW_WIDTH);
+    int winH = glutGet(GLUT_WINDOW_HEIGHT);
+    int textW = glutBitmapLength(GLUT_BITMAP_HELVETICA_18,
+                                 (const unsigned char*)name.c_str());
+    // compute a screen-space X,Y in NDC
+    float xPix = (winW - textW) * 0.5f;
+    float yPix = winH * 0.6f - 12;           // tweak vertical offset here
+    float xNdc = (xPix / winW) * 2.0f - 1.0f;
+    float yNdc = (yPix / winH) * 2.0f - 1.0f;
+
+    glColor3f(1,1,1);
+    renderText(xNdc, yNdc, name, GLUT_BITMAP_HELVETICA_18);
 
     // 5) Draw the semi-transparent stats box
     float bw = 0.6f, bh = 0.3f, bx = 0.0f, by = -0.1f;
@@ -69,7 +100,7 @@ void GameOver::draw(int winningPlayer) {
     }
 
     glDisable(GL_BLEND);
-
+    glEnable(GL_DEPTH_TEST);
     // 7) Finally, swap buffers for this scene
     glutSwapBuffers();
 }
