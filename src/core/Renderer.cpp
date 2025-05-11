@@ -77,12 +77,12 @@ void Renderer::display() {
         //cout<<"count:"<<players.size()<<"\n";
         
         // player's center
-        auto pos = player.getPosition();
-        glPointSize(8.0f);
-        glColor3f(1.0f, 1.0f, 0.0f);
-        glBegin(GL_POINTS);
-            glVertex2f(pos.first, pos.second);
-        glEnd();
+        // auto pos = player.getPosition();
+        // glPointSize(8.0f);
+        // glColor3f(1.0f, 1.0f, 0.0f);
+        // glBegin(GL_POINTS);
+        //     glVertex2f(pos.first, pos.second);
+        // glEnd();
     }
     //glEnd();
     glutSwapBuffers();
