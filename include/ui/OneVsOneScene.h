@@ -24,7 +24,13 @@ public:
         // 1) pull the names out of Game
         p1.setName( G.getPlayerName(1) );
         p2.setName( G.getPlayerName(2) );
+        ColorOption co1{ float(p1Color[0]), float(p1Color[1]), float(p1Color[2]) };
+        ColorOption co2{ float(p2Color[0]), float(p2Color[1]), float(p2Color[2]) };
+        p1.setColorOption(co1);
+        p2.setColorOption(co2);
 
+        G.addPlayer(p1); 
+        G.addPlayer(p2);
         // 2) the rest of your setup
         renderer.setMap(&mapImpl);
 

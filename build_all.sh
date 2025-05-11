@@ -23,6 +23,7 @@ SOURCES=(
 
   # menu manager
   src/ui/MenuManager.cpp
+  src/ui/GameOver.cpp
 
 
   # actual maps (no mains)

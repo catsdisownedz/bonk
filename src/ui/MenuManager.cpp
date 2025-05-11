@@ -230,7 +230,7 @@ void MenuManager::handleMouse(int button,int state,int x,int y) {
         }
     }
 
-    // [KEEP] Original color-picker and menu/map button logic:
+    // [KEEP] Original color-picker and menu/_map button logic:
     if (showColorPicker) {
         float cell = PICKER_SIZE / float(PICKER_CELLS);
         float sx   = WINDOW_WIDTH - PICKER_MARGIN - PICKER_SIZE;
@@ -346,7 +346,7 @@ void MenuManager::launchGame(const std::string& mapName) {
                        playerColors[1].g,
                        playerColors[1].b };
     G.changeScene(mapName);
-   // G.setPlayerColors(playerColors[0], playerColors[1]);
+    //G.setPlayerColors(playerColors[0], playerColors[1]);
 }
 
 // — helpers —

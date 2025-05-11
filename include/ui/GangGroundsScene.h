@@ -14,7 +14,7 @@ extern InputManager inputManager;
 
 class GangGroundsScene : public GameScene {
     Renderer     renderer;
-    GangGrounds  map;
+    GangGrounds  _map;
     Player       ball1{1}, ball2{2};
 
 public:
@@ -26,9 +26,14 @@ public:
         auto &G = Game::instance();
         ball1.setName( G.getPlayerName(1) );
         ball2.setName( G.getPlayerName(2) );
-
-        // 2) set up map & colors
-        renderer.setMap(&map);
+        ColorOption co1{ float(p1Color[0]), float(p1Color[1]), float(p1Color[2]) };
+        ColorOption co2{ float(p2Color[0]), float(p2Color[1]), float(p2Color[2]) };
+        ball1.setColorOption(co1);
+        ball2.setColorOption(co2);
+        G.addPlayer(ball1);
+        G.addPlayer(ball2);
+        // 2) set up _map & colors
+        renderer.setMap(&_map);
         ball1.setPosition({0.0, 0.40});
         ball1.setColor(p1Color);
         ball2.setPosition({-0.5, 0.45});

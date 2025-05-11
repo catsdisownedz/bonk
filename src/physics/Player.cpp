@@ -232,8 +232,8 @@ void Player::drawHalo(){
 }
 void Player::draw() {
     auto pos = getPosition();
-    auto color=getColor();
-    glColor3f(color[0], color[1], color[2]);
+    auto c = getColorOption();
+    glColor3f(c.r,c.g,c.b);
     glBegin(GL_POLYGON);
     for (int i = 0; i < 360; i += 10) {
         float rad = i * 3.14159f / 180;
