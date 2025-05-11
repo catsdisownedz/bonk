@@ -74,12 +74,12 @@ public:
         glLoadIdentity();
     }
 
-    void handleKeyboard(unsigned char k,int x,int y)      { inputManager.keyDown(k); }
-    void handleKeyboardUp(unsigned char k,int x,int y)    { inputManager.keyUp(k); }
-    void handleSpecialDown(int k,int x,int y)             { inputManager.specialKeyDown(k); }
-    void handleSpecialUp(int k,int x,int y)               { inputManager.specialKeyUp(k); }
-    void handleMouse(int,int,int,int)                    {}
-    void handlePassiveMotion(int,int)                    {}
+    void handleKeyboard(unsigned char k,int x,int y)    override  { inputManager.keyDown(k); }
+    void handleKeyboardUp(unsigned char k,int x,int y)  override  { inputManager.keyUp(k); }
+    void handleSpecialDown(int k,int x,int y)         override    { inputManager.specialKeyDown(k); }
+    void handleSpecialUp(int k,int x,int y)          override     { inputManager.specialKeyUp(k); }
+    void handleMouse(int,int,int,int)            override       {}
+    void handlePassiveMotion(int,int)            override       {}
         
 };
 

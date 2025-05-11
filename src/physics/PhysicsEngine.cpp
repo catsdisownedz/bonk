@@ -364,52 +364,52 @@ void PhysicsEngine::applyFriction(GameObject &object, double friction)
     object.setVelocity(vel);
 }
 
-bool PhysicsEngine::checkSwingCollision(Player &player, Swing &swing)
-{
-    const double radius = 0.08;
-    auto pos = player.getPosition();
-    const double margin = 0.01;
-    auto bounds = swing.getSwingBounds();
-    bounds.first.left += margin;
-    bounds.first.top -= margin;
-    bounds.first.bottom += margin;
-    bounds.first.right -= margin;
+// bool PhysicsEngine::checkSwingCollision(Player &player, Swing &swing)
+// {
+//     const double radius = 0.08;
+//     auto pos = player.getPosition();
+//     const double margin = 0.01;
+//     auto bounds = swing.getSwingBounds();
+//     bounds.first.left += margin;
+//     bounds.first.top -= margin;
+//     bounds.first.bottom += margin;
+//     bounds.first.right -= margin;
 
-    bounds.second.left += margin;
-    bounds.second.top -= margin;
-    bounds.second.bottom += margin;
-    bounds.second.right -= margin;
+//     bounds.second.left += margin;
+//     bounds.second.top -= margin;
+//     bounds.second.bottom += margin;
+//     bounds.second.right -= margin;
 
-    // Clamp player's center to platform bounds
-    double closestX = max(bounds.first.left, min(pos.first, bounds.first.right));
-    double closestY = max(bounds.first.bottom, min(pos.second, bounds.first.top));
+//     // Clamp player's center to platform bounds
+//     double closestX = max(bounds.first.left, min(pos.first, bounds.first.right));
+//     double closestY = max(bounds.first.bottom, min(pos.second, bounds.first.top));
 
-    // Compute distance between player's center and closest point
-    double distanceX = pos.first - closestX;
-    double distanceY = pos.second - closestY;
-    double distanceSquared = distanceX * distanceX + distanceY * distanceY;
+//     // Compute distance between player's center and closest point
+//     double distanceX = pos.first - closestX;
+//     double distanceY = pos.second - closestY;
+//     double distanceSquared = distanceX * distanceX + distanceY * distanceY;
 
-    bool collision = distanceSquared <= radius * radius;
+//     bool collision = distanceSquared <= radius * radius;
 
-    if (collision) {
-        cout << "Swing collision!\n";
-             return true;
-    }
-    else{
-        cout<<"checking second collision!\n";
-        double closestX = max(bounds.second.left, min(pos.first, bounds.second.right));
-        double closestY = max(bounds.second.bottom, min(pos.second, bounds.second.top));
+//     if (collision) {
+//         cout << "Swing collision!\n";
+//              return true;
+//     }
+//     else{
+//         cout<<"checking second collision!\n";
+//         double closestX = max(bounds.second.left, min(pos.first, bounds.second.right));
+//         double closestY = max(bounds.second.bottom, min(pos.second, bounds.second.top));
 
-        double distanceX = pos.first - closestX;
-        double distanceY = pos.second - closestY;
-        double distanceSquared = distanceX * distanceX + distanceY * distanceY;
+//         double distanceX = pos.first - closestX;
+//         double distanceY = pos.second - closestY;
+//         double distanceSquared = distanceX * distanceX + distanceY * distanceY;
 
-        bool collision = distanceSquared <= radius * radius;
-    }
+//         bool collision = distanceSquared <= radius * radius;
+//     }
 
-    return collision;
-}
+//     return collision;
+// }
 
-void PhysicsEngine::resolveSwingCollision(Player& player, Swing& swing){
+// void PhysicsEngine::resolveSwingCollision(Player& player, Swing& swing){
     
-}
+// }

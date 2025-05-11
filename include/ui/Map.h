@@ -3,10 +3,12 @@
 #include <physics/Bouncy.h>
 #include <vector>
 
+using namespace std;
+
 class Map {
 public:
     virtual void draw() = 0; 
-    virtual std::vector<Platform>& getPlatforms() = 0;
-    virtual std::vector<Bouncy>& getBouncies()=0;
-    virtual ~Map() {}; 
+    virtual vector<Platform>& getPlatforms() = 0;
+    virtual vector<Bouncy>& getBouncies() = 0;
+    virtual ~Map() {}
 };
