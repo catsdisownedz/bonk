@@ -17,3 +17,9 @@ vector<Bouncy> &GravityOff::getBouncies(){
 void GravityOff::draw() {
     for (auto& p : platforms) p.draw();
 }
+
+void GravityOff::update(double deltaTime) {
+    for (auto& p : platforms) p.update(deltaTime);
+}
+
+

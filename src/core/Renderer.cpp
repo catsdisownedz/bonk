@@ -98,11 +98,21 @@ void Renderer::display() {
 
 void Renderer::update() {
     if (_gameOver) return;
+        // Calculate deltaTime
+    static double lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
+    double currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
+    double deltaTime = currentTime - lastTime;
+    lastTime = currentTime;
+
+    // Update the map (e.g., moving platforms)
+    if (_map) {
+        _map->update(deltaTime);
+    }
 
     for (auto& player : players) {
         player.handleInput(inputManager);
         player.tick();
-
+        
         // world collisions
         Platform* collidedPlatform = nullptr;
         Bouncy*   collidedBouncy  = nullptr;

@@ -19,8 +19,7 @@ MenuManager::MenuManager()
     mapButtons{
       {100,400,150,150,"OneVsOne"},
       {300,400,150,150,"GangGrounds"},
-      {500,400,150,150,"GravityOff"},
-      {300,200,150,150,"Randomized"}
+      {0,0,180,180,"GravityOff"},
     }
 {
     generateRandomPlayerColors();
@@ -513,80 +512,79 @@ void MenuManager::drawMapSelection() {
     const float startX     = 200;
     const float startY     = 350;
     const float gapX       = 250;
-    const float gapY       = 200;
-    const float textMargin = 10;          // gap between bottom of box and text
-    void*  font            = GLUT_BITMAP_HELVETICA_18;
+    const float gapY       = 220;
+    const float textMargin = 10;
+    void* font = GLUT_BITMAP_HELVETICA_18;
 
-    int idx = 0;
-    for (int row = 0; row < 2; ++row) {
-        for (int col = 0; col < 2; ++col, ++idx) {
-            auto &b = mapButtons[idx];
-            // 1) compute box position
-            b.x = startX + col * gapX;
-            b.y = startY - row * gapY;
-            float x = b.x, y = b.y, w = b.width, h = b.height;
+    for (int i = 0; i < mapButtons.size(); ++i) {
+        auto& b = mapButtons[i];
 
-            // 2) pick texture
-            GLuint tex = 0;
-            if (b.highlighted && !mapGifFrames[b.label].empty()) {
-                tex = mapGifFrames[b.label][mapGifFrameIdx[b.label]];
-            } else if (mapImageTex.count(b.label)) {
-                tex = mapImageTex[b.label];
-            }
-
-            // 3) draw box (textured or fallback brown)
-            if (tex) {
-                glEnable(GL_TEXTURE_2D);
-                glBindTexture(GL_TEXTURE_2D, tex);
-                glColor3f(1,1,1);
-                glBegin(GL_QUADS);
-                  glTexCoord2f(0,0); glVertex2f(x,   y);
-                  glTexCoord2f(1,0); glVertex2f(x+w, y);
-                  glTexCoord2f(1,1); glVertex2f(x+w, y+h);
-                  glTexCoord2f(0,1); glVertex2f(x,   y+h);
-                glEnd();
-                glDisable(GL_TEXTURE_2D);
-            } else {
-                glColor3f(0.4f,0.25f,0.15f);
-                glBegin(GL_QUADS);
-                  glVertex2f(x,   y);
-                  glVertex2f(x+w, y);
-                  glVertex2f(x+w, y+h);
-                  glVertex2f(x,   y+h);
-                glEnd();
-            }
-
-            // 4) pink highlight border
-            if (b.highlighted) {
-                glColor3f(1,0.8f,0.85f);
-                glLineWidth(3);
-                glBegin(GL_LINE_LOOP);
-                  glVertex2f(x,   y);
-                  glVertex2f(x+w, y);
-                  glVertex2f(x+w, y+h);
-                  glVertex2f(x,   y+h);
-                glEnd();
-            }
-
-            // 5) measure text width, center under box
-            int textWidth = 0;
-            for (char c: b.label) {
-                textWidth += glutBitmapWidth(font, c);
-            }
-            float textX = x + (w - textWidth) * 0.5f;
-            float textY = y - textMargin;
-
-            // 6) draw white stroked label
-            drawStrokedText(
-                textX, textY,
-                b.label,
-                font
-                // r,g,b default to (1,1,1)
-            );
+        // Layout:
+        if (i == 0) { // Left top
+            b.x = startX;
+            b.y = startY;
+        } else if (i == 1) { // Right top
+            b.x = startX + gapX;
+            b.y = startY;
+        } else if (i == 2) { // Center bottom
+            float totalWidth = 180 * 2 + gapX; // total width of top row
+            b.x = startX + (gapX / 2);         // center under top row
+            b.y = startY - gapY;
         }
+
+        float x = b.x, y = b.y, w = b.width, h = b.height;
+
+        // Draw image or fallback
+        GLuint tex = 0;
+        if (b.highlighted && !mapGifFrames[b.label].empty()) {
+            tex = mapGifFrames[b.label][mapGifFrameIdx[b.label]];
+        } else if (mapImageTex.count(b.label)) {
+            tex = mapImageTex[b.label];
+        }
+
+        if (tex) {
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, tex);
+            glColor3f(1, 1, 1);
+            glBegin(GL_QUADS);
+            glTexCoord2f(0, 0); glVertex2f(x, y);
+            glTexCoord2f(1, 0); glVertex2f(x + w, y);
+            glTexCoord2f(1, 1); glVertex2f(x + w, y + h);
+            glTexCoord2f(0, 1); glVertex2f(x, y + h);
+            glEnd();
+            glDisable(GL_TEXTURE_2D);
+        } else {
+            glColor3f(0.4f, 0.25f, 0.15f);
+            glBegin(GL_QUADS);
+            glVertex2f(x, y);
+            glVertex2f(x + w, y);
+            glVertex2f(x + w, y + h);
+            glVertex2f(x, y + h);
+            glEnd();
+        }
+
+        if (b.highlighted) {
+            glColor3f(1, 0.8f, 0.85f);
+            glLineWidth(3);
+            glBegin(GL_LINE_LOOP);
+            glVertex2f(x, y);
+            glVertex2f(x + w, y);
+            glVertex2f(x + w, y + h);
+            glVertex2f(x, y + h);
+            glEnd();
+        }
+
+        // Center label under each box
+        int textWidth = 0;
+        for (char c : b.label) {
+            textWidth += glutBitmapWidth(font, c);
+        }
+        float textX = x + (w - textWidth) * 0.5f;
+        float textY = y - textMargin;
+
+        drawStrokedText(textX, textY, b.label, font);
     }
 }
-
 
 
 void MenuManager::drawColorPicker() {

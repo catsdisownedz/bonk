@@ -13,6 +13,7 @@ class GravityOff : public Map
 public:
     GravityOff();
     void draw() override;
+    void update(double deltaTime) override;
     vector<Platform>& getPlatforms() override;
     vector<Bouncy>& getBouncies() override;
 

@@ -11,6 +11,7 @@ class OneVsOne : public Map
 public:
     OneVsOne();
     void draw() override;
+    
     vector<Platform>& getPlatforms() override; 
     vector<Bouncy>& getBouncies() override;
 

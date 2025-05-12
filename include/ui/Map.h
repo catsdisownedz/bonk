@@ -10,5 +10,6 @@ public:
     virtual void draw() = 0; 
     virtual vector<Platform>& getPlatforms() = 0;
     virtual vector<Bouncy>& getBouncies() = 0;
+    virtual void update(double deltaTime) {  }
     virtual ~Map() {}
 };
